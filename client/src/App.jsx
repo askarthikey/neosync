@@ -18,6 +18,8 @@ import EditorHome from "./components/Editor-Home";
 import EditorProjectsDisplay from "./components/EditorProjectsDisplay";
 import EditorDiscover from "./components/EditorDiscover";
 import UserProfile from "./components/UserProfile";
+import YouTubeAuthSuccess from "./components/YouTubeAuthSuccess";
+import YouTubeAuthError from "./components/YouTubeAuthError";
 import RootLayout from "./components/RootLayout";
 import { NotificationProvider } from "./context/NotificationContext";
 const isAuthenticated = () => {
@@ -143,6 +145,8 @@ function App() {
               }
             />
             <Route path="/profile" element={<UserProfile />} />
+            <Route path="/youtube-auth-success" element={<YouTubeAuthSuccess />} />
+            <Route path="/youtube-auth-error" element={<YouTubeAuthError />} />
             <Route
               path="/creator-projects"
               element={

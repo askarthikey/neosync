@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get("/notifications", authMiddleware, async (req, res, next) => {
   try {
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const accessRequestsCollection = db.collection("accessRequestsCollection");
     const userEmail = req.user.email;
     const notifications = await accessRequestsCollection
@@ -31,7 +31,7 @@ router.put(
   async (req, res, next) => {
     try {
       const notificationId = req.params.id;
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const accessRequestsCollection = db.collection(
         "accessRequestsCollection",
       );
@@ -65,7 +65,7 @@ router.put(
   authMiddleware,
   async (req, res, next) => {
     try {
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const accessRequestsCollection = db.collection(
         "accessRequestsCollection",
       );
@@ -96,7 +96,7 @@ router.get(
   authMiddleware,
   async (req, res, next) => {
     try {
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const accessRequestsCollection = db.collection(
         "accessRequestsCollection",
       );
@@ -121,7 +121,7 @@ router.get(
 router.delete("/notifications/:id", authMiddleware, async (req, res, next) => {
   try {
     const notificationId = req.params.id;
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const accessRequestsCollection = db.collection("accessRequestsCollection");
     if (!ObjectId.isValid(notificationId)) {
       return res

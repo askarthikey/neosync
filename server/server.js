@@ -13,9 +13,9 @@ app.use(uploadMiddleware);
 mongoClient
   .connect(process.env.DB_URL)
   .then((client) => {
-    const zensync = client.db("zensync");
-    const usersCollection = zensync.collection("usersCollection");
-    app.set("zensync", zensync);
+    const neosync = client.db("neosync");
+    const usersCollection = neosync.collection("usersCollection");
+    app.set("neosync", neosync);
     app.set("usersCollection", usersCollection);
     console.log("DB Connection Successful");
   })
@@ -25,11 +25,13 @@ const userApp = require("./APIs/userApi");
 const projectApp = require("./APIs/projectApi");
 const notificationApi = require("./APIs/notificationApi");
 const reviewApi = require("./APIs/reviewApi");
+const youtubeApi = require("./APIs/youtubeApi");
 
 app.use("/userApi", userApp);
 app.use("/projectApi", projectApp);
 app.use("/notificationApi", notificationApi);
 app.use("/reviewApi", reviewApi);
+app.use("/youtubeApi", youtubeApi);
 
 app.use((err, req, res, next) => {
   res.send({ message: "error", payload: err.message });

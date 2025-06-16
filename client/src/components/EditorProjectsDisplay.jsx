@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import YouTubeUpload from './YouTubeUpload';
 
 function EditorProjectsDisplay() {
   const location = useLocation();
@@ -38,6 +39,8 @@ function EditorProjectsDisplay() {
 
   const [reviews, setReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [youtubeUploadModalOpen, setYoutubeUploadModalOpen] = useState(false);
+  const [selectedProjectForYoutube, setSelectedProjectForYoutube] = useState(null);
 
   // Get user from localStorage on component mount
   useEffect(() => {
@@ -625,6 +628,30 @@ function EditorProjectsDisplay() {
     }
   };
 
+  // YouTube Upload Handlers
+  const handleOpenYouTubeModal = (project) => {
+    setSelectedProjectForYoutube(project);
+    setYoutubeUploadModalOpen(true);
+  };
+
+  const handleCloseYouTubeModal = () => {
+    setYoutubeUploadModalOpen(false);
+    setSelectedProjectForYoutube(null);
+  };
+
+  const handleYouTubeUploadSuccess = (youtubeData) => {
+    // Update project status or add notification
+    console.log('YouTube upload successful:', youtubeData);
+    
+    // Optionally refresh projects or update UI
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    if (storedUser?.email) {
+      fetchEditorProjects(storedUser.email);
+    }
+    
+    handleCloseYouTubeModal();
+  };
+
   // Return loading state
   if (isLoading) {
     return (
@@ -663,7 +690,7 @@ function EditorProjectsDisplay() {
       {statusUpdateMessage && (
         <div className="fixed bottom-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg z-50 flex items-center">
           <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
           </svg>
           <span>{statusUpdateMessage}</span>
         </div>
@@ -1057,7 +1084,7 @@ function EditorProjectsDisplay() {
                           {videoResponses.length === 0 && reviews.length === 0 ? (
                             <div className="bg-gray-50 p-4 rounded-md text-center">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                               </svg>
                               <p className="text-gray-600">No conversation yet.</p>
                             </div>
@@ -1150,7 +1177,7 @@ function EditorProjectsDisplay() {
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                   </a>
                                 )}
@@ -1299,16 +1326,28 @@ function EditorProjectsDisplay() {
                       )}
                       
                       {selectedProject.status === 'Completed' && (
-                        <button
-                          onClick={() => handleOpenVideoModal(selectedProject._id)}
-                          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                          <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                            <path stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 4h2a2 2 0 012 2v8a2 2 0 01-2 2h-2" />
-                          </svg>
-                          Add Video Response
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleOpenVideoModal(selectedProject._id)}
+                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          >
+                            <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                              <path stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 4h2a2 2 0 012 2v8a2 2 0 01-2 2h-2" />
+                            </svg>
+                            Add Video Response
+                          </button>
+                          
+                          <button
+                            onClick={() => handleOpenYouTubeModal(selectedProject)}
+                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                          >
+                            <svg className="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                            Upload to YouTube
+                          </button>
+                        </>
                       )}
                     </div>
                     <div className="space-x-2">
@@ -1558,6 +1597,69 @@ function EditorProjectsDisplay() {
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* YouTube Upload Modal */}
+      {youtubeUploadModalOpen && selectedProjectForYoutube && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Upload to YouTube - {selectedProjectForYoutube.title}
+              </h3>
+              <button
+                onClick={handleCloseYouTubeModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <YouTubeUpload 
+              project={selectedProjectForYoutube}
+              onUploadSuccess={handleYouTubeUploadSuccess}
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* YouTube Upload Modal */}
+      {youtubeUploadModalOpen && selectedProjectForYoutube && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-medium text-gray-900">
+                Upload to YouTube - {selectedProjectForYoutube.title}
+              </h3>
+              <button
+                onClick={handleCloseYouTubeModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <YouTubeUpload 
+                project={selectedProjectForYoutube} 
+                onUploadSuccess={handleYouTubeUploadSuccess}
+              />
+            </div>
+            
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={handleCloseYouTubeModal}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Cancel
               </button>
             </div>
           </div>

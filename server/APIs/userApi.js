@@ -96,7 +96,7 @@ userApp.get(
 userApp.get("/user/:username", async (req, res, next) => {
   try {
     const username = req.params.username;
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const usersCollection = db.collection("usersCollection");
     const user = await usersCollection.findOne({ username: username });
     if (!user) {
@@ -121,7 +121,7 @@ userApp.put(
     try {
       const { username } = req.params;
       const updates = req.body;
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const usersCollection = db.collection("usersCollection");
       if (req.user.username !== username) {
         return res.status(403).json({

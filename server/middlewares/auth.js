@@ -18,7 +18,7 @@ module.exports = async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.SECRET_KEY);
       console.log("Token decoded successfully:", decoded);
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       if (!db) {
         console.error("Database connection not found in app");
         return res.status(500).json({ message: "Server configuration error" });

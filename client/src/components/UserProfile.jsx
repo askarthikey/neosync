@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import YouTubeAuth from "./YouTubeAuth";
 function UserProfile() {
   const [user, setUser] = useState(null);
   const [createdProjects, setCreatedProjects] = useState([]);
@@ -717,6 +718,13 @@ function UserProfile() {
               </div>
             )}
           </div>
+          
+          {/* YouTube Integration Section - Only show for current user */}
+          {currentUser && currentUser.username === user.username && (
+            <div className="mt-6">
+              <YouTubeAuth user={user} />
+            </div>
+          )}
         </div>
         <div className="col-span-2">
           <div className="bg-white rounded-lg shadow overflow-hidden">

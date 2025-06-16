@@ -21,7 +21,7 @@ router.post(
   validateFiles,
   async (req, res, next) => {
     try {
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const projectsCollection = db.collection("projectsCollection");
       
       if (
@@ -161,7 +161,7 @@ router.post(
 
 router.get("/user-projects", authMiddleware, async (req, res, next) => {
   try {
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const username = req.query.username;
     if (!username) {
@@ -179,7 +179,7 @@ router.get("/user-projects", authMiddleware, async (req, res, next) => {
 
 router.get("/editor-projects", authMiddleware, async (req, res, next) => {
   try {
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const reviewsCollection = db.collection("reviewsCollection");
     const editorEmail = req.query.email;
@@ -221,7 +221,7 @@ router.get("/editor-projects", authMiddleware, async (req, res, next) => {
 
 router.get("/project/:id", authMiddleware, async (req, res, next) => {
   try {
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const id = req.params.id;
     if (!ObjectId.isValid(id)) {
@@ -239,7 +239,7 @@ router.get("/project/:id", authMiddleware, async (req, res, next) => {
 
 router.put("/project/:id", authMiddleware, async (req, res, next) => {
   try {
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const id = req.params.id;
     const { status, feedback } = req.body;
@@ -289,7 +289,7 @@ router.put("/project/:id/status", authMiddleware, async (req, res, next) => {
     if (!status) {
       return res.status(400).json({ message: "Status is required" });
     }
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const ObjectId = require("mongodb").ObjectId;
     const updateData = {
@@ -319,7 +319,7 @@ router.put("/project/:id/status", authMiddleware, async (req, res, next) => {
 
 router.delete("/project/:id", authMiddleware, async (req, res, next) => {
   try {
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const id = req.params.id;
     if (!ObjectId.isValid(id)) {
@@ -381,7 +381,7 @@ router.get("/editors", authMiddleware, async (req, res, next) => {
 
 router.get("/unassigned-projects", authMiddleware, async (req, res, next) => {
   try {
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const projects = await projectsCollection
       .find({
@@ -422,7 +422,7 @@ router.post(
           .status(400)
           .json({ success: false, message: "Editor email is required" });
       }
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const projectsCollection = db.collection("projectsCollection");
       const accessRequestsCollection = db.collection(
         "accessRequestsCollection",
@@ -488,7 +488,7 @@ router.get(
   authMiddleware,
   async (req, res, next) => {
     try {
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const accessRequestsCollection = db.collection(
         "accessRequestsCollection",
       );
@@ -529,7 +529,7 @@ router.get(
   authMiddleware,
   async (req, res, next) => {
     try {
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const accessRequestsCollection = db.collection(
         "accessRequestsCollection",
       );
@@ -559,7 +559,7 @@ router.put(
   async (req, res, next) => {
     try {
       const requestId = req.params.id;
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const accessRequestsCollection = db.collection(
         "accessRequestsCollection",
       );
@@ -617,7 +617,7 @@ router.put(
   async (req, res, next) => {
     try {
       const requestId = req.params.id;
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const accessRequestsCollection = db.collection(
         "accessRequestsCollection",
       );
@@ -655,7 +655,7 @@ router.get(
   async (req, res, next) => {
     try {
       const username = req.params.username;
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const projectsCollection = db.collection("projectsCollection");
       const projects = await projectsCollection
         .find({ userCreated: username })
@@ -676,7 +676,7 @@ router.get(
   async (req, res, next) => {
     try {
       const editorEmail = req.params.email;
-      const db = req.app.get("zensync");
+      const db = req.app.get("neosync");
       const projectsCollection = db.collection("projectsCollection");
       const projects = await projectsCollection
         .find({ editorEmail: editorEmail })
@@ -699,7 +699,7 @@ router.put("/close-project/:id", authMiddleware, async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid project ID" });
     }
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const result = await projectsCollection.updateOne(
       { _id: new ObjectId(id) },
@@ -768,7 +768,7 @@ router.post("/add-video-response/:id", validateFiles, async (req, res, next) => 
         .json({ success: false, message: "No video file uploaded" });
     }
 
-    const dbss = req.app.get("zensync");
+    const dbss = req.app.get("neosync");
     const usersCollection = dbss.collection("usersCollection");
     const user = await usersCollection.findOne({ username });
     
@@ -781,7 +781,7 @@ router.post("/add-video-response/:id", validateFiles, async (req, res, next) => 
     const editorEmail = user.email;
     console.log("Found editor email:", editorEmail);
 
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     if (!db) {
       console.error("Database connection not available");
       return res
@@ -943,7 +943,7 @@ router.get("/project-responses/:id", authMiddleware, async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid project ID" });
     }
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const project = await projectsCollection.findOne(
       { _id: new ObjectId(id) },
@@ -988,7 +988,7 @@ router.get("/add-video-response/:id", authMiddleware, async (req, res) => {
         message: "Invalid project ID",
       });
     }
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const project = await projectsCollection.findOne({
       _id: new ObjectId(id),
@@ -1034,7 +1034,7 @@ router.post("/add-review", authMiddleware, async (req, res) => {
         .status(400)
         .json({ success: false, message: "Comment is required" });
     }
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const reviewsCollection = db.collection("reviewsCollection");
     const project = await projectsCollection.findOne({
@@ -1075,7 +1075,7 @@ router.get("/project-reviews/:id", authMiddleware, async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid project ID" });
     }
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const reviewsCollection = db.collection("reviewsCollection");
     const reviews = await reviewsCollection
       .find({ projectId: new ObjectId(id) })
@@ -1103,7 +1103,7 @@ router.get("/project-reviews-by-editor", authMiddleware, async (req, res) => {
         .status(400)
         .json({ success: false, message: "Editor email is required" });
     }
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const usersCollection = db.collection("usersCollection");
     const reviewsCollection = db.collection("reviewsCollection");
     const user = await usersCollection.findOne({ email });
@@ -1145,7 +1145,7 @@ router.put("/update-review/:id", authMiddleware, async (req, res) => {
         .status(400)
         .json({ success: false, message: "Comment text is required" });
     }
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const reviewsCollection = db.collection("reviewsCollection");
     const existingReview = await reviewsCollection.findOne({
       _id: new ObjectId(id),
@@ -1197,7 +1197,7 @@ router.delete("/delete-review/:id", authMiddleware, async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid review ID" });
     }
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const reviewsCollection = db.collection("reviewsCollection");
     const existingReview = await reviewsCollection.findOne({
       _id: new ObjectId(id),
@@ -1237,7 +1237,7 @@ router.get("/creator-feedback-for-editor", authMiddleware, async (req, res) => {
   try {
     const editorEmail = req.query.email;
     // Get the database collections
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const usersCollection = db.collection("usersCollection");
     const projectsCollection = db.collection("projectsCollection");
     const reviewsCollection = db.collection("reviewsCollection");

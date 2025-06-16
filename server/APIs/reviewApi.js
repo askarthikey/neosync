@@ -5,7 +5,7 @@ const authMiddleware = require("../middlewares/auth");
 
 router.post("/submit-review", authMiddleware, async (req, res) => {
   try {
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const reviewsCollection = db.collection("reviewsCollection");
     const projectsCollection = db.collection("projectsCollection");
     const usersCollection = db.collection("usersCollection");
@@ -69,7 +69,7 @@ router.post("/submit-review", authMiddleware, async (req, res) => {
 
 router.get("/editor/:email", authMiddleware, async (req, res) => {
   try {
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const reviewsCollection = db.collection("reviewsCollection");
     const { email } = req.params;
     const reviews = await reviewsCollection
@@ -90,7 +90,7 @@ router.get("/editor/:email", authMiddleware, async (req, res) => {
 
 router.get("/project/:projectId", authMiddleware, async (req, res) => {
   try {
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const reviewsCollection = db.collection("reviewsCollection");
     const { projectId } = req.params;
     if (!ObjectId.isValid(projectId)) {
@@ -115,7 +115,7 @@ router.get("/project/:projectId", authMiddleware, async (req, res) => {
 
 router.get("/editor-ratings", async (req, res) => {
   try {
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const usersCollection = db.collection("usersCollection");
     const editors = await usersCollection
       .find({
@@ -151,7 +151,7 @@ router.get("/check-review", authMiddleware, async (req, res) => {
         message: "Missing required parameters",
       });
     }
-    const db = req.app.get("zensync");
+    const db = req.app.get("neosync");
     const reviewsCollection = db.collection("reviewsCollection");
     const review = await reviewsCollection.findOne({
       projectId: new ObjectId(projectId),
