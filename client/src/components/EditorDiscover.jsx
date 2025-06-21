@@ -345,19 +345,56 @@ function EditorDiscover() {
   // Return loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-600"></div>
-          <p className="mt-4 text-gray-600">Discovering available projects...</p>
+      <>
+        {/* Custom animations */}
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+          }
+          
+          @keyframes pulse-glow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+          }
+          
+          .animate-float {
+            animation: float 6s ease-in-out infinite;
+          }
+          
+          .animate-pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+          }
+        `}</style>
+
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-blue-900 relative overflow-hidden">
+          {/* Floating particles */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-20 left-10 w-2 h-2 bg-blue-400/30 rounded-full animate-float" style={{animationDelay: '0s'}}></div>
+            <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-purple-400/40 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
+            <div className="absolute bottom-32 left-1/4 w-1 h-1 bg-cyan-400/50 rounded-full animate-float" style={{animationDelay: '2s'}}></div>
+          </div>
+
+          <div className="relative z-10 flex items-center justify-center min-h-screen pt-20 pb-8">
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-400/50"></div>
+                  <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border border-purple-400/30"></div>
+                </div>
+                <p className="mt-6 text-gray-300 text-lg font-medium animate-pulse-glow">Discovering available projects...</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   // Return error state
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
         <div className="bg-red-50 p-4 rounded-md">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -376,7 +413,7 @@ function EditorDiscover() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
       {accessMessage && (
         <div className={`fixed bottom-4 right-4 px-4 py-3 rounded shadow-lg z-50 flex items-center ${
           accessMessage.type === 'success' 

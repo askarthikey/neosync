@@ -127,7 +127,7 @@ function Header() {
   return (
     <>
       {/* Custom styles for glassmorphic header */}
-      <style jsx>{`
+      <style>{`
         @keyframes shimmer {
           0% {
             transform: translateX(-100%);

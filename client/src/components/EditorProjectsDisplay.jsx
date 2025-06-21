@@ -11,6 +11,7 @@ function EditorProjectsDisplay() {
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProject, setSelectedProject] = useState(null);
@@ -652,41 +653,142 @@ function EditorProjectsDisplay() {
     handleCloseYouTubeModal();
   };
 
+  // Mouse position tracking for glassmorphic animations
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   // Return loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-600"></div>
-          <p className="mt-4 text-gray-600">Loading projects...</p>
+      <>
+        {/* Custom animations */}
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+          }
+          
+          @keyframes pulse-glow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+          }
+          
+          .animate-float {
+            animation: float 6s ease-in-out infinite;
+          }
+          
+          .animate-pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+          }
+        `}</style>
+
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-blue-900 relative overflow-hidden">
+          {/* Dynamic background gradient */}
+          <div 
+            className="absolute inset-0 opacity-30 transition-all duration-1000 ease-out pointer-events-none"
+            style={{
+              background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.2), transparent 50%)`
+            }}
+          />
+
+          {/* Floating particles */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-20 left-10 w-2 h-2 bg-blue-400/30 rounded-full animate-float" style={{animationDelay: '0s'}}></div>
+            <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-purple-400/40 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
+            <div className="absolute bottom-32 left-1/4 w-1 h-1 bg-cyan-400/50 rounded-full animate-float" style={{animationDelay: '2s'}}></div>
+          </div>
+
+          <div className="relative z-10 flex items-center justify-center min-h-screen pt-20 pb-8">
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-400/50"></div>
+                  <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border border-purple-400/30"></div>
+                </div>
+                <p className="mt-6 text-gray-300 text-lg font-medium animate-pulse-glow">Loading projects...</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   // Return error state
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 p-4 rounded-md">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error loading projects</h3>
-              <p className="text-sm text-red-700 mt-2">{error}</p>
+      <>
+        {/* Custom animations */}
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+          }
+          
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+          }
+          
+          .animate-float {
+            animation: float 6s ease-in-out infinite;
+          }
+          
+          .animate-shake {
+            animation: shake 0.5s ease-in-out;
+          }
+        `}</style>
+
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-blue-900 relative overflow-hidden">
+          {/* Dynamic background gradient */}
+          <div 
+            className="absolute inset-0 opacity-30 transition-all duration-1000 ease-out pointer-events-none"
+            style={{
+              background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(239, 68, 68, 0.3), rgba(147, 51, 234, 0.2), transparent 50%)`
+            }}
+          />
+
+          {/* Floating particles */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-20 left-10 w-2 h-2 bg-red-400/30 rounded-full animate-float" style={{animationDelay: '0s'}}></div>
+            <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-orange-400/40 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
+          </div>
+
+          <div className="relative z-10 flex items-center justify-center min-h-screen pt-20 pb-8 px-4">
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl max-w-md w-full animate-shake">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                  <svg className="h-8 w-8 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-red-300 mb-2">Error Loading Projects</h3>
+                <p className="text-gray-300 mb-6">{error}</p>
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-medium rounded-xl hover:from-red-600 hover:to-pink-700 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500/50 transition-all duration-300 shadow-lg"
+                >
+                  Try Again
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
       {statusUpdateMessage && (
         <div className="fixed bottom-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg z-50 flex items-center">
           <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -894,7 +996,7 @@ function EditorProjectsDisplay() {
                     {project.status === 'Completed' ? (
                       <span className="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                         </svg>
                         Completed
                       </span>
@@ -1642,7 +1744,7 @@ function EditorProjectsDisplay() {
                 className="text-gray-400 hover:text-gray-600"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>

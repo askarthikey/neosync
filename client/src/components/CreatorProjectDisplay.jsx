@@ -17,6 +17,10 @@ function CreatorProjectDisplay() {
     completed: 0,
     overdue: 0
   });
+  
+  // Animation state variables
+  const [isVisible, setIsVisible] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [editFormData, setEditFormData] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
@@ -451,6 +455,14 @@ function CreatorProjectDisplay() {
 
   // Load user data and fetch projects
   useEffect(() => {
+    setIsVisible(true);
+    
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    
     const userData = localStorage.getItem('user');
     if (userData) {
       const parsedUser = JSON.parse(userData);
@@ -459,6 +471,8 @@ function CreatorProjectDisplay() {
     } else {
       navigate('/signin');
     }
+    
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [navigate]);
 
   // Fetch projects from API
@@ -635,37 +649,37 @@ function CreatorProjectDisplay() {
   // Get status badge styling based on status
   const getStatusStyles = (status) => {
     if (status === 'Draft') {
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
     } else if (status.includes('In Progress')) {
-      return 'bg-blue-100 text-blue-700';
+      return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     } else if (status === 'Completed') {
-      return 'bg-green-100 text-green-800';
+      return 'bg-green-500/20 text-green-300 border-green-500/30';
     } else if (status === "Closed"){
-      return 'bg-cyan-100 text-black-100'
+      return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
     }
-    return 'bg-gray-100 text-gray-800';
+    return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
   };
 
   // Get priority badge styling
   const getPriorityStyles = (priority) => {
     if (priority === 'high') {
-      return 'text-red-600';
+      return 'text-red-400';
     } else if (priority === 'medium') {
-      return 'text-orange-500';
+      return 'text-orange-400';
     }
-    return 'text-green-600';
+    return 'text-green-400';
   };
 
   // Get deadline styling
   const getDeadlineStyles = (daysRemaining, status) => {
     if (status === 'Completed') {
-      return 'text-green-600';
+      return 'text-green-400';
     } else if (daysRemaining < 0) {
-      return 'text-red-600 font-medium';
+      return 'text-red-400 font-medium';
     } else if (daysRemaining <= 3) {
-      return 'text-orange-600 font-medium';
+      return 'text-orange-400 font-medium';
     }
-    return 'text-gray-600';
+    return 'text-gray-300';
   };
 
   // Handle project click to show details
@@ -737,1215 +751,585 @@ function CreatorProjectDisplay() {
   };
 
   // Render loading state
+  // Render loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-600"></div>
-          <p className="mt-4 text-gray-600">Loading your projects...</p>
+      <>
+        {/* Custom animations */}
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+          }
+          
+          @keyframes pulse-glow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+          }
+          
+          .animate-float {
+            animation: float 6s ease-in-out infinite;
+          }
+          
+          .animate-pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+          }
+        `}</style>
+
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-blue-900 relative overflow-hidden">
+          {/* Dynamic background gradient */}
+          <div 
+            className="absolute inset-0 opacity-30 transition-all duration-1000 ease-out pointer-events-none"
+            style={{
+              background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.2), transparent 50%)`
+            }}
+          />
+
+          {/* Floating particles */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-20 left-10 w-2 h-2 bg-blue-400/30 rounded-full animate-float" style={{animationDelay: '0s'}}></div>
+            <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-purple-400/40 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
+            <div className="absolute bottom-32 left-1/4 w-1 h-1 bg-cyan-400/50 rounded-full animate-float" style={{animationDelay: '2s'}}></div>
+          </div>
+
+          <div className="relative z-10 flex items-center justify-center min-h-screen pt-20 pb-8">
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-400/50"></div>
+                  <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border border-purple-400/30"></div>
+                </div>
+                <p className="mt-6 text-gray-300 text-lg font-medium animate-pulse-glow">Loading your projects...</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   // Render error state
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 p-4 rounded-md mb-6">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error loading projects</h3>
-              <p className="text-sm text-red-700 mt-2">{error}</p>
-              <div className="mt-4">
+      <>
+        {/* Custom animations */}
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+          }
+          
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+          }
+          
+          .animate-float {
+            animation: float 6s ease-in-out infinite;
+          }
+          
+          .animate-shake {
+            animation: shake 0.5s ease-in-out;
+          }
+        `}</style>
+
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-blue-900 relative overflow-hidden">
+          {/* Dynamic background gradient */}
+          <div 
+            className="absolute inset-0 opacity-30 transition-all duration-1000 ease-out pointer-events-none"
+            style={{
+              background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(239, 68, 68, 0.3), rgba(147, 51, 234, 0.2), transparent 50%)`
+            }}
+          />
+
+          {/* Floating particles */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-20 left-10 w-2 h-2 bg-red-400/30 rounded-full animate-float" style={{animationDelay: '0s'}}></div>
+            <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-orange-400/40 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
+          </div>
+
+          <div className="relative z-10 flex items-center justify-center min-h-screen pt-20 pb-8 px-4">
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl max-w-md w-full animate-shake">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                  <svg className="h-8 w-8 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-red-300 mb-2">Error Loading Projects</h3>
+                <p className="text-gray-300 mb-6">{error}</p>
                 <button
                   type="button"
                   onClick={() => fetchProjects(user.username)}
-                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-medium rounded-xl hover:from-red-600 hover:to-pink-700 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500/50 transition-all duration-300 shadow-lg"
                 >
-                  Try again
+                  Try Again
                 </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header with stats */}
-      <div className="bg-white rounded-lg shadow-lg mb-8 overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-700 px-6 py-5">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-white">My Projects</h1>
-              <p className="mt-1 text-purple-100">Manage and track all your content projects</p>
-            </div>
-            <button
-              onClick={handleCreateProject}
-              className="mt-4 md:mt-0 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-purple-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-purple-600 focus:ring-white"
-            >
-              <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-              </svg>
-              New Project
-            </button>
-          </div>
-        </div>
+    <>
+      {/* Custom animations */}
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
         
-        <div className="grid grid-cols-2 md:grid-cols-6 divide-x divide-gray-200">
-          <div className="p-5 text-center">
-            <div className="text-2xl font-bold text-gray-900">{statsData.total}</div>
-            <div className="text-sm text-gray-500">Total Projects</div>
-          </div>
-          <div className="p-5 text-center">
-            <div className="text-2xl font-bold text-gray-900">{statsData.total- statsData.closed - statsData.completed - statsData.inProgress - statsData.overdue - statsData.draft}</div>
-            <div className="text-sm text-gray-500">Unassigned</div>
-          </div>
-          <div className="p-5 text-center">
-            <div className="text-2xl font-bold text-blue-600">{statsData.inProgress}</div>
-            <div className="text-sm text-gray-500">In Progress</div>
-          </div>
-          <div className="p-5 text-center">
-            <div className="text-2xl font-bold text-green-600">{statsData.completed}</div>
-            <div className="text-sm text-gray-500">Completed</div>
-          </div>
-          <div className="p-5 text-center">
-            <div className="text-2xl font-bold text-gray-600">{statsData.closed}</div>
-            <div className="text-sm text-gray-500">Closed</div>
-          </div>
-          <div className="p-5 text-center">
-            <div className="text-2xl font-bold text-red-600">{statsData.overdue}</div>
-            <div className="text-sm text-gray-500">Overdue</div>
-          </div>
-        </div>
-      </div>
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes floatSlow {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-30px) rotate(180deg); }
+        }
+        
+        @keyframes drift {
+          0% { transform: translateX(0px); }
+          100% { transform: translateX(100vw); }
+        }
+        
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        @keyframes orbit {
+          0% { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+          100% { transform: rotate(360deg) translateX(20px) rotate(-360deg); }
+        }
+        
+        @keyframes morphing {
+          0%, 100% { border-radius: 50%; transform: rotate(0deg) scale(1); }
+          25% { border-radius: 0%; transform: rotate(90deg) scale(1.1); }
+          50% { border-radius: 50%; transform: rotate(180deg) scale(0.9); }
+          75% { border-radius: 0%; transform: rotate(270deg) scale(1.1); }
+        }
+        
+        @keyframes pulse-glow {
+          0%, 100% { 
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(147, 51, 234, 0.2);
+          }
+          50% { 
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5), 0 0 60px rgba(147, 51, 234, 0.3);
+          }
+        }
+        
+        .animate-fadeInUp {
+          animation: fadeInUp 0.6s ease-out forwards;
+          opacity: 0;
+        }
+        
+        .animate-slideInLeft {
+          animation: slideInLeft 0.6s ease-out forwards;
+          opacity: 0;
+        }
+        
+        .animate-slideInRight {
+          animation: slideInRight 0.6s ease-out forwards;
+          opacity: 0;
+        }
+        
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-floatSlow {
+          animation: floatSlow 8s ease-in-out infinite;
+        }
+        
+        .animate-drift {
+          animation: drift 25s linear infinite;
+        }
+        
+        .animate-twinkle {
+          animation: twinkle 2s ease-in-out infinite;
+        }
+        
+        .animate-orbit {
+          animation: orbit 20s linear infinite;
+        }
+        
+        .animate-morphing {
+          animation: morphing 8s ease-in-out infinite;
+        }
+        
+        .animate-pulse-glow {
+          animation: pulse-glow 3s ease-in-out infinite;
+        }
+        
+        .hover-lift {
+          transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .hover-lift:hover {
+          transform: translateY(-10px) scale(1.02);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .project-card {
+          backdrop-filter: blur(16px);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s ease;
+        }
+        
+        .project-card:hover {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          transform: translateY(-5px);
+        }
+        
+        .filter-button {
+          backdrop-filter: blur(12px);
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s ease;
+        }
+        
+        .filter-button:hover {
+          background: rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          transform: translateY(-2px);
+        }
+        
+        .filter-button.active {
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.3));
+          border: 1px solid rgba(59, 130, 246, 0.5);
+          box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+        }
+      `}</style>
 
-      {/* Search and filters */}
-      <div className="mb-6 flex flex-col sm:flex-row justify-between items-center">
-        <div className="flex flex-wrap space-x-2 mb-4 sm:mb-0">
-          <button
-            onClick={() => setActiveFilter('all')}
-            className={`px-3 py-2 rounded-md text-sm font-medium mb-2 sm:mb-0 ${
-              activeFilter === 'all'
-                ? 'bg-purple-100 text-purple-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setActiveFilter('draft')}
-            className={`px-3 py-2 rounded-md text-sm font-medium mb-2 sm:mb-0 ${
-              activeFilter === 'draft'
-                ? 'bg-gray-100 text-gray-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Draft
-          </button>
-          <button
-            onClick={() => setActiveFilter('in-progress')}
-            className={`px-3 py-2 rounded-md text-sm font-medium mb-2 sm:mb-0 ${
-              activeFilter === 'in-progress'
-                ? 'bg-blue-100 text-blue-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            In Progress
-          </button>
-          <button
-            onClick={() => setActiveFilter('completed')}
-            className={`px-3 py-2 rounded-md text-sm font-medium mb-2 sm:mb-0 ${
-              activeFilter === 'completed'
-                ? 'bg-green-100 text-green-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Completed
-          </button>
-          <button
-            onClick={() => setActiveFilter('closed')}
-            className={`px-3 py-2 rounded-md text-sm font-medium mb-2 sm:mb-0 ${
-              activeFilter === 'in-progress'
-                ? 'bg-blue-100 text-blue-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Closed
-          </button>
-          <button
-            onClick={() => setActiveFilter('overdue')}
-            className={`px-3 py-2 rounded-md text-sm font-medium mb-2 sm:mb-0 ${
-              activeFilter === 'overdue'
-                ? 'bg-red-100 text-red-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Overdue
-          </button>
-        </div>
-        <div className="relative w-full sm:w-64">
-          <input
-            type="text"
-            placeholder="Search projects..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-            </svg>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-blue-900 relative overflow-hidden">
+        {/* Dynamic background gradient that follows mouse */}
+        <div 
+          className="absolute inset-0 opacity-30 transition-all duration-1000 ease-out pointer-events-none"
+          style={{
+            background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.2), transparent 50%)`
+          }}
+        />
+
+        {/* Animated background particles */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Floating particles */}
+          <div className="absolute top-20 left-10 w-2 h-2 bg-blue-400/30 rounded-full animate-float" style={{animationDelay: '0s'}}></div>
+          <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-purple-400/40 rounded-full animate-floatSlow" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-32 left-1/4 w-1 h-1 bg-cyan-400/50 rounded-full animate-float" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/3 right-1/3 w-2.5 h-2.5 bg-pink-400/25 rounded-full animate-floatSlow" style={{animationDelay: '0.5s'}}></div>
+          <div className="absolute bottom-20 right-10 w-1.5 h-1.5 bg-yellow-400/35 rounded-full animate-float" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute top-2/3 left-1/5 w-1 h-1 bg-green-400/40 rounded-full animate-floatSlow" style={{animationDelay: '3s'}}></div>
+
+          {/* Drifting particles */}
+          <div className="absolute top-10 w-1.5 h-1.5 bg-blue-400/40 rounded-full animate-drift" style={{animationDelay: '0s'}}></div>
+          <div className="absolute top-32 w-1 h-1 bg-purple-400/50 rounded-full animate-drift" style={{animationDelay: '3s'}}></div>
+          <div className="absolute top-56 w-2 h-2 bg-cyan-400/30 rounded-full animate-drift" style={{animationDelay: '6s'}}></div>
+          <div className="absolute top-72 w-1.5 h-1.5 bg-pink-400/35 rounded-full animate-drift" style={{animationDelay: '9s'}}></div>
+
+          {/* Twinkling stars */}
+          <div className="absolute top-10 left-10 w-1 h-1 bg-white/60 rounded-full animate-twinkle" style={{animationDelay: '0s'}}></div>
+          <div className="absolute top-20 right-20 w-0.5 h-0.5 bg-blue-300/80 rounded-full animate-twinkle" style={{animationDelay: '1s'}}></div>
+          <div className="absolute top-32 left-1/3 w-1.5 h-1.5 bg-purple-300/60 rounded-full animate-twinkle" style={{animationDelay: '2s'}}></div>
+          <div className="absolute bottom-20 left-1/4 w-0.5 h-0.5 bg-pink-300/80 rounded-full animate-twinkle" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute bottom-40 right-1/3 w-1 h-1 bg-yellow-300/60 rounded-full animate-twinkle" style={{animationDelay: '2.5s'}}></div>
+
+          {/* Morphing particles */}
+          <div className="absolute top-1/6 right-1/6 w-3 h-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 animate-morphing" style={{animationDelay: '0s'}}></div>
+          <div className="absolute bottom-1/6 left-1/6 w-2.5 h-2.5 bg-gradient-to-r from-cyan-500/25 to-pink-500/25 animate-morphing" style={{animationDelay: '2s'}}></div>
+
+          {/* Orbiting elements */}
+          <div className="absolute top-1/4 left-1/4">
+            <div className="w-1.5 h-1.5 bg-blue-400/30 rounded-full animate-orbit" style={{animationDelay: '0s'}}></div>
+          </div>
+          <div className="absolute bottom-1/4 right-1/4">
+            <div className="w-2 h-2 bg-purple-400/25 rounded-full animate-orbit" style={{animationDelay: '10s', animationDirection: 'reverse'}}></div>
           </div>
         </div>
-      </div>
 
-      {/* Project Grid */}
-      {filteredProjects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {filteredProjects.map(project => (
-            <div 
-              key={project._id} 
-              className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-              onClick={() => handleProjectClick(project)}
-            >
-              {/* Thumbnail with status overlay */}
-              <div className="relative h-48 bg-gray-200">
-                {project.thumbnailUrl ? (
-                  <img 
-                    src={project.thumbnailUrl} 
-                    alt={project.title} 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                )}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                  <div className="flex justify-between items-center">
-                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${getStatusStyles(project.status)}`}>
-                      {project.status}
-                    </span>
-                    <span className={`text-xs ${getPriorityStyles(project.priority)} font-medium`}>
-                      {project.priority === 'high' ? 'High Priority' : 
-                       project.priority === 'medium' ? 'Medium Priority' : 'Low Priority'}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Progress bar overlay at the bottom of the thumbnail */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-300">
-                  <div 
-                    className={`h-full ${
-                      project.completionPercentage === 100 ? 'bg-green-500' : 
-                      project.completionPercentage >= 60 ? 'bg-blue-500' : 
-                      project.completionPercentage >= 30 ? 'bg-yellow-500' : 
-                      'bg-red-500'
-                    }`} 
-                    style={{ width: `${project.completionPercentage}%` }}
-                  ></div>
-                </div>
+        {/* Floating geometric shapes */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-20 left-10 w-4 h-4 bg-blue-400/20 rotate-45 animate-float" style={{animationDelay: '0s'}}></div>
+          <div className="absolute top-40 right-20 w-6 h-6 bg-purple-400/20 rounded-full animate-floatSlow" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-32 left-1/4 w-3 h-3 bg-cyan-400/20 rotate-12 animate-float" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/3 right-1/3 w-5 h-5 bg-pink-400/20 rounded-full animate-floatSlow" style={{animationDelay: '0.5s'}}></div>
+          <div className="absolute bottom-20 right-10 w-4 h-4 bg-yellow-400/20 rotate-45 animate-float" style={{animationDelay: '1.5s'}}></div>
+        </div>
+
+        {/* Main content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+          {/* Header with stats */}
+          <div className={`bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl mb-8 hover:bg-white/8 transition-all duration-300 ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`}>
+            {/* Header section */}
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+              <div className="text-center md:text-left mb-6 md:mb-0">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-2">
+                  My Projects
+                </h1>
+                <p className="text-gray-300 text-lg">Manage and track all your content projects</p>
               </div>
-              
-              {/* Content */}
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">{project.title}</h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{project.description}</p>
-                
-                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                  <div>
-                    <p className="text-gray-500">Editor:</p>
-                    <p className="font-medium truncate">
-                      {project.editorName || (project.editorEmail ? project.editorEmail.split('@')[0] : 'Not assigned')}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Deadline:</p>
-                    <p className={`font-medium ${getDeadlineStyles(project.daysRemaining, project.status)}`}>
-                      {formatDate(project.deadline)}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {project.tags.slice(0, 3).map((tag, index) => (
-                    <span 
-                      key={index} 
-                      className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                  {project.tags.length > 3 && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-500">
-                      +{project.tags.length - 3}
-                    </span>
-                  )}
-                </div>
+              <button
+                onClick={handleCreateProject}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500/50 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-2"
+              >
+                <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                <span>New Project</span>
+              </button>
+            </div>
+            
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 text-center border border-white/10 hover:bg-white/15 transition-all duration-300">
+                <div className="text-2xl font-bold text-white">{statsData.total}</div>
+                <div className="text-sm text-gray-300">Total</div>
               </div>
-              
-              {/* Footer with time and progress indication */}
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-                <div className="flex justify-between items-center text-sm">
-                  <div className="flex items-center text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Created {formatDate(project.createdAt)}</span>
-                  </div>
-                  <div className={getDeadlineStyles(project.daysRemaining, project.status)}>
-                    {project.status === 'Completed' || project.status==='Closed' ? (
-                      <span className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="green">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        Completed
-                      </span>
-                    ) : project.isOverdue ? (
-                      <span className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
-                        </svg>
-                        {Math.abs(project.daysRemaining)} days overdue
-                      </span>
-                    ) : (
-                      <span>
-                        {project.daysRemaining === 0 ? 'Due today' : `${project.daysRemaining} days left`}
-                      </span>
-                    )}
-                  </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 text-center border border-white/10 hover:bg-white/15 transition-all duration-300">
+                <div className="text-2xl font-bold text-orange-400">{statsData.total - statsData.closed - statsData.completed - statsData.inProgress - statsData.overdue - statsData.draft}</div>
+                <div className="text-sm text-gray-300">Unassigned</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 text-center border border-white/10 hover:bg-white/15 transition-all duration-300">
+                <div className="text-2xl font-bold text-blue-400">{statsData.inProgress}</div>
+                <div className="text-sm text-gray-300">In Progress</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 text-center border border-white/10 hover:bg-white/15 transition-all duration-300">
+                <div className="text-2xl font-bold text-green-400">{statsData.completed}</div>
+                <div className="text-sm text-gray-300">Completed</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 text-center border border-white/10 hover:bg-white/15 transition-all duration-300">
+                <div className="text-2xl font-bold text-gray-400">{statsData.closed}</div>
+                <div className="text-sm text-gray-300">Closed</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 text-center border border-white/10 hover:bg-white/15 transition-all duration-300">
+                <div className="text-2xl font-bold text-red-400">{statsData.overdue}</div>
+                <div className="text-sm text-gray-300">Overdue</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Search and filters */}
+          <div className={`bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-xl mb-8 ${isVisible ? 'animate-slideInLeft' : 'opacity-0'}`} style={{animationDelay: '0.2s'}}>
+            <div className="flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0 lg:space-x-6">
+              {/* Filter buttons */}
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'all', label: 'All', color: 'from-gray-500 to-gray-600' },
+                  { key: 'draft', label: 'Draft', color: 'from-yellow-500 to-orange-500' },
+                  { key: 'in-progress', label: 'In Progress', color: 'from-blue-500 to-blue-600' },
+                  { key: 'completed', label: 'Completed', color: 'from-green-500 to-green-600' },
+                  { key: 'closed', label: 'Closed', color: 'from-gray-500 to-gray-600' },
+                  { key: 'overdue', label: 'Overdue', color: 'from-red-500 to-red-600' }
+                ].map((filter) => (
+                  <button
+                    key={filter.key}
+                    onClick={() => setActiveFilter(filter.key)}
+                    className={`filter-button px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+                      activeFilter === filter.key
+                        ? `active text-white bg-gradient-to-r ${filter.color}`
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search input */}
+              <div className="relative w-full lg:w-80">
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-3 pl-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300"
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-16zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                  </svg>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md p-8 flex flex-col items-center justify-center text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <h3 className="text-lg font-medium text-gray-900 mb-1">No projects found</h3>
-          <p className="text-gray-500 mb-6">
-            {searchQuery || activeFilter !== 'all' ? 
-              'Try adjusting your search or filters to find what you\'re looking for.' : 
-              'Get started by creating your first project.'}
-          </p>
-          <button
-            onClick={handleCreateProject}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-          >
-            <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-            </svg>
-            Create New Project
-          </button>
-        </div>
-      )}
+          </div>
 
-      {/* Project Details Modal */}
-      {selectedProject && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="relative">
-              {/* Modal header with thumbnail as background */}
-              <div className="h-48 sm:h-64 bg-gray-200 relative">
-                {selectedProject.thumbnailUrl ? (
-                  <img 
-                    src={selectedProject.thumbnailUrl} 
-                    alt={selectedProject.title} 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20 flex flex-col justify-end p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h2 className="text-2xl font-bold text-white mb-1">{selectedProject.title}</h2>
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {selectedProject.tags.map((tag, index) => (
-                          <span 
-                            key={index} 
-                            className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <span className={`px-3 py-1 rounded-md text-sm font-medium ${getStatusStyles(selectedProject.status)}`}>
-                      {selectedProject.status}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Close button */}
-                <button 
-                  onClick={closeProjectDetails} 
-                  className="absolute top-4 right-4 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </div>
-              
-              {/* Progress bar */}
-              <div className="h-2 bg-gray-200">
+          {/* Projects Grid */}
+          {filteredProjects.length > 0 ? (
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${isVisible ? 'animate-slideInRight' : 'opacity-0'}`} style={{animationDelay: '0.4s'}}>
+              {filteredProjects.map((project, index) => (
                 <div 
-                  className={`h-full ${
-                    selectedProject.completionPercentage === 100 ? 'bg-green-500' : 
-                    selectedProject.completionPercentage >= 60 ? 'bg-blue-500' : 
-                    selectedProject.completionPercentage >= 30 ? 'bg-yellow-500' : 
-                    'bg-red-500'
-                  }`} 
-                  style={{ width: `${selectedProject.completionPercentage}%` }}
-                ></div>
-              </div>
-              
-              {/* Modal body */}
-              <div className="p-6 overflow-y-auto max-h-[50vh]">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Left column - Project details */}
-                  <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
-                    <p className="text-gray-700 mb-6">{selectedProject.description}</p>
-                    
-                    {/* Video preview if available */}
-                    {selectedProject.videoUrl && (
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Video Preview</h3>
-                        <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                          <video 
-                            src={selectedProject.videoUrl} 
-                            className="w-full h-full object-contain" 
-                            controls
-                          ></video>
-                        </div>
+                  key={project._id} 
+                  className="project-card rounded-2xl overflow-hidden hover-lift cursor-pointer group"
+                  onClick={() => handleProjectClick(project)}
+                  style={{animationDelay: `${0.1 * index}s`}}
+                >
+                  {/* Thumbnail with magical overlay */}
+                  <div className="relative h-48 overflow-hidden">
+                    {project.thumbnailUrl ? (
+                      <img 
+                        src={project.thumbnailUrl} 
+                        alt={project.title} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800/50 to-gray-900/50">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
                       </div>
                     )}
                     
-                    {/* Feedback section if available */}
-                    {selectedProject.feedback && (
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Editor Feedback</h3>
-                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md">
-                          <p className="text-yellow-700">{selectedProject.feedback}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Conversation between editor and creator */}
-                    <div className="mb-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Project Conversation</h3>
-                        {selectedProject.status !== 'Closed' && (
-                          <button
-                            onClick={handleOpenReviewModal}
-                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                          >
-                            <svg className="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clipRule="evenodd" />
-                            </svg>
-                            Add Comment
-                          </button>
-                        )}
-                      </div>
-                      
-                      {loadingResponses ? (
-                        <div className="flex items-center justify-center h-32">
-                          <div className="text-center">
-                            <svg className="animate-spin h-8 w-8 text-purple-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <p className="text-gray-600">Loading conversation...</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {videoResponses.length === 0 && reviews.length === 0 ? (
-                            <div className="bg-gray-50 p-4 rounded-md text-center">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                              </svg>
-                              <p className="text-gray-600">No conversation yet. Add a comment to get started!</p>
-                            </div>
-                          ) : (
-                            // Merge and sort video responses and reviews by timestamp
-                            [...videoResponses.map(response => ({
-                              ...response,
-                              type: 'editor-response',
-                              timestamp: new Date(response.createdAt || Date.now() - (videoResponses.length - response.index) * 86400000)
-                            })), 
-                            ...reviews.map(review => ({
-                              ...review,
-                              type: 'creator-review',
-                              timestamp: new Date(review.createdAt)
-                            }))]
-                            .sort((a, b) => a.timestamp - b.timestamp)
-                            .map((item, idx) => (
-                              <div 
-                                key={`${item.type}-${idx}`} 
-                                className={`p-4 rounded-lg ${
-                                  item.type === 'editor-response' 
-                                    ? 'bg-blue-50 border-l-4 border-blue-300' 
-                                    : 'bg-purple-50 border-l-4 border-purple-300'
-                                }`}
-                              >
-                                <div className="flex items-start mb-2">
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                    item.type === 'editor-response' ? 'bg-blue-200' : 'bg-purple-200'
-                                  }`}>
-                                    <span className="text-sm font-medium">
-                                      {item.type === 'editor-response' ? 'E' : 'C'}
-                                    </span>
-                                  </div>
-                                  <div className="ml-3">
-                                    <span className="text-sm font-medium">
-                                      {item.type === 'editor-response' 
-                                        ? `Editor Response #${item.index + 1}` 
-                                        : 'Your Comment'}
-                                    </span>
-                                    <span className="ml-2 text-xs text-gray-500">
-                                      {item.timestamp.toLocaleDateString(undefined, {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}
-                                    </span>
-                                  </div>
-                                </div>
-                                
-                                {item.type === 'editor-response' && item.videoUrl && (
-                                  <div className="relative aspect-video bg-black rounded-lg overflow-hidden mb-3">
-                                    <video 
-                                      src={`http://localhost:4000${item.videoUrl}`} 
-                                      controls
-                                      className="w-full h-full object-contain"
-                                    />
-                                  </div>
-                                )}
-                                
-                                <div className="prose max-w-none text-gray-700">
-                                  <p>{item.type === 'editor-response' ? 
-                                    (item.description || 'No description provided') : 
-                                    (item.comment || 'No comment provided')}
-                                  </p>
-                                  
-                                  {/* Add the edit/delete buttons here */}
-                                  {item.type === 'creator-review' && selectedProject.status !== 'Closed' && (
-                                    <div className="flex justify-end mt-2">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleOpenEditComment(item);
-                                        }}
-                                        className="text-xs text-indigo-600 hover:text-indigo-800 mr-3"
-                                      >
-                                        <span className="flex items-center">
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                          </svg>
-                                          Edit
-                                        </span>
-                                      </button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleConfirmDelete(item._id);
-                                        }}
-                                        className="text-xs text-red-600 hover:text-red-800"
-                                      >
-                                        <span className="flex items-center">
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                          </svg>
-                                          Delete
-                                        </span>
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      )}
+                    {/* Magic gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    
+                    {/* Status and Priority badges */}
+                    <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                      <span className={`px-3 py-1 rounded-xl text-xs font-semibold backdrop-blur-sm border ${getStatusStyles(project.status)} shadow-lg`}>
+                        {project.status}
+                      </span>
+                      <span className={`px-3 py-1 rounded-xl text-xs font-semibold backdrop-blur-sm bg-white/10 border border-white/20 text-white ${getPriorityStyles(project.priority)} shadow-lg`}>
+                        {project.priority === 'high' ? '🔥 High' : 
+                         project.priority === 'medium' ? '⚡ Medium' : '💎 Low'}
+                      </span>
+                    </div>
+                    
+                    {/* Magical progress bar */}
+                    <div className="absolute bottom-0 left-0 right-0 h-2 bg-black/30">
+                      <div 
+                        className={`h-full transition-all duration-1000 ${
+                          project.completionPercentage === 100 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 
+                          project.completionPercentage >= 60 ? 'bg-gradient-to-r from-blue-400 to-cyan-500' : 
+                          project.completionPercentage >= 30 ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : 
+                          'bg-gradient-to-r from-red-400 to-pink-500'
+                        } animate-pulse-glow`} 
+                        style={{ width: `${project.completionPercentage}%` }}
+                      ></div>
                     </div>
                   </div>
                   
-                  {/* Right column - Project metadata */}
-                  <div className="space-y-6">
-                    {/* Project Stats */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="font-medium text-gray-900 mb-3">Project Details</h3>
-                      <dl className="space-y-2">
-                        <div className="grid grid-cols-3 gap-1">
-                          <dt className="text-sm font-medium text-gray-500">Editor:</dt>
-                          <dd className="text-sm text-gray-900 col-span-2 truncate">
-                            <div className="flex items-center">
-                              <a 
-                                href={`mailto:${selectedProject.editorEmail}`} 
-                                className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {selectedProject.editorName || selectedProject.editorEmail}
-                              </a>
-                              
-                              {selectedProject.editorRating && (
-                                <span className="ml-2 flex items-center">
-                                  <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded-full flex items-center">
-                                    <svg className="w-3 h-3 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                                    </svg>
-                                    {selectedProject.editorRating} 
-                                    {selectedProject.editorTotalReviews && (
-                                      <span className="text-gray-600 ml-1">({selectedProject.editorTotalReviews})</span>
-                                    )}
-                                  </span>
-                                </span>
-                              )}
-                            </div>
-                          </dd>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1">
-                          <dt className="text-sm font-medium text-gray-500">Status:</dt>
-                          <dd className="text-sm text-gray-900 col-span-2">{selectedProject.status}</dd>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1">
-                          <dt className="text-sm font-medium text-gray-500">Created:</dt>
-                          <dd className="text-sm text-gray-900 col-span-2">{formatDate(selectedProject.createdAt)}</dd>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1">
-                          <dt className="text-sm font-medium text-gray-500">Deadline:</dt>
-                          <dd className={`text-sm col-span-2 ${getDeadlineStyles(selectedProject.daysRemaining, selectedProject.status)}`}>
-                            {formatDate(selectedProject.deadline)}
-                          </dd>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1">
-                          <dt className="text-sm font-medium text-gray-500">Time Left:</dt>
-                          <dd className={`text-sm col-span-2 ${getDeadlineStyles(selectedProject.daysRemaining, selectedProject.status)}`}>
-                            {selectedProject.status === 'Completed' ? (
-                              <span className="flex items-center text-green-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                                Completed
-                              </span>
-                            ) : selectedProject.status === 'Closed' ? (
-                              <span className="flex items-center text-green-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                                Closed
-                              </span>
-                            ) : selectedProject.isOverdue ? (
-                              `${Math.abs(selectedProject.daysRemaining)} days overdue`
-                            ) : (
-                              selectedProject.daysRemaining === 0 ? 'Due today' : `${selectedProject.daysRemaining} days left`
-                            )}
-                          </dd>
-                        </div>
-                      </dl>
+                  {/* Content section */}
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors duration-300 line-clamp-1">{project.title}</h3>
+                    <p className="text-gray-300 text-sm mb-4 line-clamp-2 leading-relaxed">{project.description}</p>
+                    
+                    {/* Project details grid */}
+                    <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                      <div className="space-y-1">
+                        <p className="text-gray-400 text-xs uppercase tracking-wider">Editor</p>
+                        <p className="font-medium text-white truncate">
+                          {project.editorName || (project.editorEmail ? project.editorEmail.split('@')[0] : '🔍 Not assigned')}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-gray-400 text-xs uppercase tracking-wider">Deadline</p>
+                        <p className={`font-medium ${getDeadlineStyles(project.daysRemaining, project.status)}`}>
+                          {formatDate(project.deadline)}
+                        </p>
+                      </div>
                     </div>
                     
-                    {/* Completion progress */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex justify-between mb-2">
-                        <h3 className="font-medium text-gray-900">Completion</h3>
-                        <span className="text-sm font-medium text-gray-700">{selectedProject.completionPercentage}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div 
-                          className={`h-2.5 rounded-full ${
-                            selectedProject.completionPercentage === 100 ? 'bg-green-500' : 
-                            selectedProject.completionPercentage >= 60 ? 'bg-blue-500' : 
-                            selectedProject.completionPercentage >= 30 ? 'bg-yellow-500' : 
-                            'bg-red-500'
-                          }`} 
-                          style={{ width: `${selectedProject.completionPercentage}%` }}>
-                        </div>
-                      </div>
-                      <div className="mt-4">
-                        <div className="flex items-center text-sm">
-                          <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                          <span className="text-gray-600">100%: Completed</span>
-                        </div>
-                        <div className="flex items-center text-sm mt-1">
-                          <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                          <span className="text-gray-600">60-99%: Almost there</span>
-                        </div>
-                        <div className="flex items-center text-sm mt-1">
-                          <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-                          <span className="text-gray-600">30-59%: Good progress</span>
-                        </div>
-                        <div className="flex items-center text-sm mt-1">
-                          <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                          <span className="text-gray-600">0-29%: Just started</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Modal footer with actions */}
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-wrap justify-between gap-3">
-                {selectedProject.status === 'Closed' ? (
-                  // Only show the Close button for closed projects
-                  <div className="w-full flex justify-end">
-                    <button
-                      onClick={closeProjectDetails}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                    >
-                      Close
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditProject(selectedProject._id);
-                        }}
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                      >
-                        <svg className="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                        </svg>
-                        Edit Project
-                      </button>
-                    </div>
-                    <div className="space-x-2">
-                      <button
-                        onClick={closeProjectDetails}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                      >
-                        Close
-                      </button>
-                      {selectedProject.editorEmail && selectedProject.status !== 'Completed' && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleContactEditor(selectedProject.editorEmail, selectedProject.title);
-                          }}
-                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                    {/* Magical tags */}
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {project.tags.slice(0, 3).map((tag, tagIndex) => (
+                        <span 
+                          key={tagIndex} 
+                          className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 backdrop-blur-sm hover:from-blue-500/30 hover:to-purple-500/30 transition-all duration-300"
                         >
-                          <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                          </svg>
-                          Contact Editor
-                        </button>
-                      )}
-                      {selectedProject.status === 'Completed' && (
-                        <>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenRatingModal(selectedProject._id, selectedProject.editorEmail);
-                            }}
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 mr-2"
-                            disabled={closingProject}
-                          >
-                            <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            Rate Editor
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenReviewModal();
-                            }}
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
-                            disabled={closingProject}
-                          >
-                            <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clipRule="evenodd" />
-                            </svg>
-                            Add Comment
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCloseProject(selectedProject._id);
-                            }}
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                            disabled={closingProject}
-                          >
-                            <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                            {closingProject ? "Closing..." : "Close Project"}
-                          </button>
-                        </>
+                          {tag}
+                        </span>
+                      ))}
+                      {project.tags.length > 3 && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-white/10 text-gray-300 border border-white/20 backdrop-blur-sm">
+                          +{project.tags.length - 3}
+                        </span>
                       )}
                     </div>
-                  </>
-                )}
-              </div>
+                    
+                    {/* Completion indicator */}
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 animate-pulse"></div>
+                        <span className="text-xs text-gray-400">{project.completionPercentage}% Complete</span>
+                      </div>
+                      {project.daysRemaining > 0 ? (
+                        <span className="text-xs text-green-400 font-medium">
+                          {project.daysRemaining} days left
+                        </span>
+                      ) : project.daysRemaining === 0 ? (
+                        <span className="text-xs text-yellow-400 font-medium">Due today!</span>
+                      ) : (
+                        <span className="text-xs text-red-400 font-medium">
+                          {Math.abs(project.daysRemaining)} days overdue
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Project Modal */}
-      {editModalOpen && editFormData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">Edit Project</h3>
-              <button 
-                onClick={() => setEditModalOpen(false)} 
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            // Empty state with magical styling
+            <div className={`bg-white/5 backdrop-blur-xl rounded-3xl p-12 border border-white/10 shadow-2xl text-center ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`} style={{animationDelay: '0.6s'}}>
+              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center">
+                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
-              </button>
-            </div>
-            
-            {updateError && (
-              <div className="mx-6 mt-4 bg-red-50 border-l-4 border-red-400 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-red-700">{updateError}</p>
-                  </div>
-                </div>
               </div>
-            )}
-            
-            <form onSubmit={handleUpdateProject} className="p-6 overflow-y-auto max-h-[calc(90vh-10rem)]">
-              <div className="space-y-6">
-                {/* Project title */}
-                <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                    Project Title
-                  </label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    value={editFormData.title}
-                    onChange={handleEditInputChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                    required
-                  />
-                </div>
-                
-                {/* Project description */}
-                <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                    Description
-                  </label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    rows={3}
-                    value={editFormData.description}
-                    onChange={handleEditInputChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-                
-                {/* Project status */}
-                <div>
-                  <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-                    Status
-                  </label>
-                  <select
-                    id="status"
-                    name="status"
-                    value={editFormData.status}
-                    onChange={handleEditInputChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                  >
-                    <option value="Draft">Draft</option>
-                    <option value="In Progress - 25%">In Progress - 25%</option>
-                    <option value="In Progress - 50%">In Progress - 50%</option>
-                    <option value="In Progress - 75%">In Progress - 75%</option>
-                    <option value="Completed">Completed</option>
-                  </select>
-                </div>
-                
-                {/* Editor email */}
-                <div>
-                  <label htmlFor="editorEmail" className="block text-sm font-medium text-gray-700">
-                    Assigned To (Email)
-                  </label>
-                  <input
-                    type="email"
-                    id="editorEmail"
-                    name="editorEmail"
-                    value={editFormData.editorEmail}
-                    onChange={handleEditInputChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-                
-                {/* Deadline */}
-                <div>
-                  <label htmlFor="deadline" className="block text-sm font-medium text-gray-700">
-                    Deadline
-                  </label>
-                  <input
-                    type="date"
-                    id="deadline"
-                    name="deadline"
-                    value={editFormData.deadline}
-                    onChange={handleEditInputChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                    required
-                  />
-                </div>
-                
-                {/* Tags */}
-                <div>
-                  <label htmlFor="tags" className="block text-sm font-medium text-gray-700">
-                    Tags (comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    id="tags"
-                    name="tags"
-                    value={editFormData.tags}
-                    onChange={handleEditInputChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-              </div>
-            </form>
-            
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setEditModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 mr-3"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleUpdateProject}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                disabled={updateLoading}
-              >
-                {updateLoading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Saving...
-                  </>
-                ) : "Save Changes"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Review Modal */}
-      {reviewModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">Add Comment</h3>
-              <button 
-                onClick={() => setReviewModalOpen(false)} 
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            {reviewError && (
-              <div className="mx-6 mt-4 bg-red-50 border-l-4 border-red-400 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-red-700">{reviewError}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <form onSubmit={handleSubmitReview} className="p-6 overflow-y-auto max-h-[calc(90vh-10rem)]">
-              <div className="space-y-6">
-                <div>
-                  <label htmlFor="comment" className="block text-sm font-medium text-gray-700">
-                    Your Comment
-                  </label>
-                  <textarea
-                    id="comment"
-                    name="comment"
-                    rows={6}
-                    value={reviewData.comment}
-                    onChange={(e) => setReviewData({...reviewData, comment: e.target.value})}
-                    placeholder="Add your thoughts, questions or feedback for the editor..."
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                    required
-                  />
-                  <p className="mt-1 text-sm text-gray-500">
-                    Your comment will be visible to the editor and will help with the collaboration process.
-                  </p>
-                </div>
-              </div>
-            </form>
-            
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setReviewModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 mr-3"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmitReview}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                disabled={submittingReview || !reviewData.comment.trim()}
-              >
-                {submittingReview ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Submitting...
-                  </>
-                ) : "Submit Comment"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Comment Modal */}
-      {editCommentModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">Edit Comment</h3>
-              <button 
-                onClick={() => setEditCommentModalOpen(false)} 
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            {reviewError && (
-              <div className="mx-6 mt-4 bg-red-50 border-l-4 border-red-400 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-red-700">{reviewError}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <form onSubmit={handleUpdateComment} className="p-6 overflow-y-auto max-h-[calc(90vh-10rem)]">
-              <div className="space-y-6">
-                <div>
-                  <label htmlFor="edit-comment" className="block text-sm font-medium text-gray-700">
-                    Your Comment
-                  </label>
-                  <textarea
-                    id="edit-comment"
-                    name="edit-comment"
-                    rows={6}
-                    value={editCommentData?.comment || ''}
-                    onChange={(e) => setEditCommentData({
-                      ...editCommentData,
-                      comment: e.target.value || ''
-                    })}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                    required
-                  />
-                </div>
-              </div>
-            </form>
-            
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setEditCommentModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 mr-3"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleUpdateComment}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                disabled={editingComment || !editCommentData.comment.trim()}
-              >
-                {editingComment ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Updating...
-                  </>
-                ) : "Update Comment"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {deleteConfirmOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Delete Comment</h3>
-            </div>
-            
-            <div className="p-6">
-              <p className="text-gray-700 mb-4">
-                Are you sure you want to delete this comment? This action cannot be undone.
+              <h3 className="text-2xl font-bold text-gray-300 mb-2">No Projects Found</h3>
+              <p className="text-gray-400 mb-6">
+                {searchQuery ? 
+                  `No projects match "${searchQuery}". Try adjusting your search or filter.` : 
+                  `You haven't created any projects yet. Create your first project to get started!`
+                }
               </p>
-            </div>
-            
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setDeleteConfirmOpen(false);
-                  setCommentToDelete(null);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 mr-3"
-                disabled={deletingComment}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteComment}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                disabled={deletingComment}
-              >
-                {deletingComment ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Deleting...
-                  </>
-                ) : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Rating Modal */}
-      {ratingModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">Rate Editor</h3>
-              <button 
-                onClick={() => setRatingModalOpen(false)} 
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <form onSubmit={handleSubmitRating} className="p-6">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Your Rating</label>
-                <div className="flex items-center space-x-1">
-                  {[1,2,3,4,5].map(star => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setRatingData({ ...ratingData, rating: star })}
-                      className="focus:outline-none"
-                      aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
-                    >
-                      <svg
-                        className={`w-8 h-8 ${star <= ratingData.rating ? 'text-yellow-400' : 'text-gray-300'}`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                      </svg>
-                    </button>
-                  ))}
-                  <span className="ml-2 text-sm text-gray-700">{ratingData.rating} Star{ratingData.rating > 1 ? 's' : ''}</span>
-                </div>
-              </div>
-              {ratingError && (
-                <div className="mb-2 text-red-600 text-sm">{ratingError}</div>
+              {!searchQuery && (
+                <button
+                  onClick={handleCreateProject}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500/50 transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                  Create Your First Project
+                </button>
               )}
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setRatingModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 mr-2"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700"
-                  disabled={ratingSubmitting}
-                >
-                  {ratingSubmitting ? "Submitting..." : "Submit Rating"}
-                </button>
-              </div>
-            </form>
-          </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }
 
