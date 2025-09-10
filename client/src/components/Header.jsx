@@ -692,10 +692,10 @@ function Header() {
                     >
                       <span className="sr-only">Open user menu</span>
                       <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center h-8 w-8 rounded-lg font-semibold group-hover:scale-110 transition-transform duration-300">
-                        {user?.fullName.charAt(0).toUpperCase()}
+                        {(user?.fullName || user?.name || user?.username || user?.email || 'U').charAt(0).toUpperCase()}
                       </div>
                       <span className="ml-2 text-sm font-medium text-gray-200 hidden sm:block group-hover:text-white transition-colors duration-300">
-                        {user?.fullName.split(" ")[0]}
+                        {(user?.fullName || user?.name || user?.username || user?.email)?.split(" ")[0] || 'User'}
                       </span>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
