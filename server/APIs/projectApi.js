@@ -242,7 +242,8 @@ router.put("/project/:id", authMiddleware, async (req, res, next) => {
     const db = req.app.get("neosync");
     const projectsCollection = db.collection("projectsCollection");
     const id = req.params.id;
-    const { status, feedback } = req.body;
+    const { status, feedback, title, description, tags, deadline, editorEmail } = req.body;
+    
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid project ID" });
     }
@@ -251,33 +252,62 @@ router.put("/project/:id", authMiddleware, async (req, res, next) => {
     const existingProject = await projectsCollection.findOne({
       _id: new ObjectId(id),
     });
+    
     if (!existingProject) {
       return res.status(404).json({ message: "Project not found" });
     }
+    
+    // Check if user is authorized to edit this project
+    if (existingProject.userCreated !== req.user.username) {
+      return res.status(403).json({ message: "Not authorized to edit this project" });
+    }
+    
     const updateData = {
       $set: {
         updatedAt: new Date(),
       },
     };
+    
+    // Handle status and feedback updates (existing functionality)
     if (status) updateData.$set.status = status;
     if (feedback) updateData.$set.feedback = feedback;
+    
+    // Handle full project edits (new functionality)
+    if (title) updateData.$set.title = title;
+    if (description) updateData.$set.description = description;
+    if (editorEmail !== undefined) updateData.$set.editorEmail = editorEmail;
+    if (deadline) updateData.$set.deadline = new Date(deadline);
+    
+    // Handle tags - convert to array if it's a string
+    if (tags) {
+      if (Array.isArray(tags)) {
+        updateData.$set.tags = tags;
+      } else if (typeof tags === 'string') {
+        updateData.$set.tags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      }
+    }
+    
     const result = await projectsCollection.updateOne(
       { _id: new ObjectId(id) },
       updateData,
     );
+    
     if (result.modifiedCount === 0) {
       return res
         .status(400)
         .json({ message: "No changes made to the project" });
     }
+    
     const updatedProject = await projectsCollection.findOne({
       _id: new ObjectId(id),
     });
+    
     res.status(200).json({
       message: "Project updated successfully",
       project: updatedProject,
     });
   } catch (error) {
+    console.error("Error updating project:", error);
     next(error);
   }
 });
