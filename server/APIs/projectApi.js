@@ -750,6 +750,252 @@ router.put("/close-project/:id", authMiddleware, async (req, res) => {
   }
 });
 
+router.put("/reopen-project/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, completionPercentage } = req.body;
+    
+    if (!ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid project ID" });
+    }
+    
+    const db = req.app.get("neosync");
+    const projectsCollection = db.collection("projectsCollection");
+    
+    // First, check if the project exists and is closed
+    const project = await projectsCollection.findOne({ _id: new ObjectId(id) });
+    
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
+    }
+    
+    if (project.status !== "Closed") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Only closed projects can be reopened" });
+    }
+    
+    const updateData = {
+      status: status || "Completed",
+      completionPercentage: completionPercentage || 100
+    };
+    
+    const result = await projectsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+    
+    if (result.modifiedCount === 1) {
+      return res.status(200).json({ 
+        success: true, 
+        message: `Project reopened as ${updateData.status}`,
+        data: updateData
+      });
+    } else {
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found or no changes made" });
+    }
+  } catch (error) {
+    console.error("Error reopening project:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to reopen project" });
+  }
+});
+
+// YouTube Permission System
+router.put("/grant-youtube-access/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid project ID" });
+    }
+    
+    const db = req.app.get("neosync");
+    const projectsCollection = db.collection("projectsCollection");
+    
+    // Check if the project exists and the user is the creator
+    const project = await projectsCollection.findOne({ _id: new ObjectId(id) });
+    
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
+    }
+    
+    // Verify the user is the creator
+    if (project.userCreated !== req.user.username && project.creatorEmail !== req.user.email) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Only the project creator can grant YouTube access" });
+    }
+    
+    // Set YouTube access with 1 hour expiration
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour from now
+    
+    const updateData = {
+      youtubeAccess: {
+        granted: true,
+        grantedAt: now,
+        expiresAt: expiresAt,
+        grantedBy: req.user.email
+      }
+    };
+    
+    const result = await projectsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+    
+    if (result.modifiedCount === 1) {
+      return res.status(200).json({ 
+        success: true, 
+        message: "YouTube access granted for 1 hour",
+        data: updateData
+      });
+    } else {
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to grant YouTube access" });
+    }
+  } catch (error) {
+    console.error("Error granting YouTube access:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to grant YouTube access" });
+  }
+});
+
+router.put("/revoke-youtube-access/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid project ID" });
+    }
+    
+    const db = req.app.get("neosync");
+    const projectsCollection = db.collection("projectsCollection");
+    
+    // Check if the project exists and the user is the creator
+    const project = await projectsCollection.findOne({ _id: new ObjectId(id) });
+    
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
+    }
+    
+    // Verify the user is the creator
+    if (project.userCreated !== req.user.username && project.creatorEmail !== req.user.email) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Only the project creator can revoke YouTube access" });
+    }
+    
+    const updateData = {
+      youtubeAccess: {
+        granted: false,
+        revokedAt: new Date(),
+        revokedBy: req.user.email
+      }
+    };
+    
+    const result = await projectsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+    
+    if (result.modifiedCount === 1) {
+      return res.status(200).json({ 
+        success: true, 
+        message: "YouTube access revoked",
+        data: updateData
+      });
+    } else {
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to revoke YouTube access" });
+    }
+  } catch (error) {
+    console.error("Error revoking YouTube access:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to revoke YouTube access" });
+  }
+});
+
+router.get("/check-youtube-access/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid project ID" });
+    }
+    
+    const db = req.app.get("neosync");
+    const projectsCollection = db.collection("projectsCollection");
+    
+    const project = await projectsCollection.findOne({ _id: new ObjectId(id) });
+    
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
+    }
+    
+    const now = new Date();
+    const youtubeAccess = project.youtubeAccess;
+    
+    let hasAccess = false;
+    let timeRemaining = 0;
+    
+    if (youtubeAccess && youtubeAccess.granted) {
+      // Check if access has expired
+      if (youtubeAccess.expiresAt && new Date(youtubeAccess.expiresAt) > now) {
+        hasAccess = true;
+        timeRemaining = Math.max(0, Math.floor((new Date(youtubeAccess.expiresAt) - now) / 1000));
+      } else if (youtubeAccess.expiresAt) {
+        // Access has expired, revoke it
+        await projectsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { 
+            $set: { 
+              "youtubeAccess.granted": false,
+              "youtubeAccess.expiredAt": now
+            } 
+          }
+        );
+      }
+    }
+    
+    return res.status(200).json({ 
+      success: true,
+      hasAccess: hasAccess,
+      timeRemaining: timeRemaining,
+      accessInfo: youtubeAccess
+    });
+  } catch (error) {
+    console.error("Error checking YouTube access:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to check YouTube access" });
+  }
+});
+
 router.post("/add-video-response/:id", validateFiles, async (req, res, next) => {
   try {
     console.log("Request received for video upload, headers:", {

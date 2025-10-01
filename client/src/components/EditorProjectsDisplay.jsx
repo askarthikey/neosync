@@ -1193,12 +1193,13 @@ function EditorProjectsDisplay() {
             </div>
           )}
 
-      {/* Project Detail Modal */}
+      {/* Enhanced Project Detail Modal */}
       {selectedProject && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden border border-white/20">
             <div className="relative">
-              <div className="h-48 sm:h-64 bg-gray-200 relative">
+              {/* Enhanced Header with thumbnail */}
+              <div className="h-56 sm:h-72 bg-gradient-to-br from-blue-500/20 to-purple-500/20 relative overflow-hidden">
                 {selectedProject.thumbnailUrl ? (
                   <img 
                     src={selectedProject.thumbnailUrl} 
@@ -1206,36 +1207,62 @@ function EditorProjectsDisplay() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800/50 to-gray-900/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20 flex flex-col justify-end p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h2 className="text-2xl font-bold text-white mb-1">{selectedProject.title}</h2>
-                      <div className="flex flex-wrap gap-1 mb-2">
+                
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+                
+                {/* Project info overlay */}
+                <div className="absolute bottom-0 left-0 right-0 p-8">
+                  <div className="flex flex-col sm:flex-row justify-between items-start">
+                    <div className="flex-1">
+                      <h2 className="text-3xl font-bold text-white mb-2">{selectedProject.title}</h2>
+                      <div className="flex flex-wrap gap-2 mb-3">
                         {selectedProject.tags && selectedProject.tags.map((tag, index) => (
                           <span 
                             key={index} 
-                            className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white"
+                            className="inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium bg-white/20 text-white backdrop-blur-sm border border-white/30"
                           >
                             {tag}
                           </span>
                         ))}
                       </div>
+                      <p className="text-gray-200 text-sm mb-3">{selectedProject.description}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-md text-sm font-medium ${getStatusStyles(selectedProject.status)}`}>
-                      {selectedProject.status}
-                    </span>
+                    
+                    {/* Action buttons */}
+                    <div className="flex items-start gap-3">
+                      {/* Only show YouTube upload button for completed projects */}
+                      {selectedProject.status === 'Completed' && (
+                        <button
+                          onClick={() => {
+                            setSelectedProjectForYoutube(selectedProject);
+                            setYoutubeUploadModalOpen(true);
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-600/90 hover:bg-red-600 text-white rounded-xl transition-all duration-200 backdrop-blur-sm font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                          </svg>
+                          Upload to YouTube
+                        </button>
+                      )}
+                      <span className={`px-3 py-1 rounded-xl text-sm font-medium backdrop-blur-sm ${getStatusStyles(selectedProject.status)}`}>
+                        {selectedProject.status}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 
+                {/* Enhanced close button */}
                 <button 
                   onClick={closeProjectDetails} 
-                  className="absolute top-4 right-4 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 transition-colors"
+                  className="absolute top-6 right-6 bg-black/30 hover:bg-black/50 text-white rounded-xl p-2 transition-all duration-200 backdrop-blur-sm border border-white/20 hover:border-white/40"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -1243,28 +1270,42 @@ function EditorProjectsDisplay() {
                 </button>
               </div>
               
-              <div className="h-2 bg-gray-200">
+              {/* Enhanced progress bar */}
+              <div className="h-3 bg-white/10 backdrop-blur-sm">
                 <div 
-                  className={`h-full ${
-                    selectedProject.completionPercentage === 100 ? 'bg-green-500' : 
-                    selectedProject.completionPercentage >= 60 ? 'bg-blue-500' : 
-                    selectedProject.completionPercentage >= 30 ? 'bg-yellow-500' : 
-                    'bg-red-500'
+                  className={`h-full rounded-b-3xl transition-all duration-300 ${
+                    selectedProject.completionPercentage === 100 ? 'bg-gradient-to-r from-green-400 to-green-600' : 
+                    selectedProject.completionPercentage >= 60 ? 'bg-gradient-to-r from-blue-400 to-blue-600' : 
+                    selectedProject.completionPercentage >= 30 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 
+                    'bg-gradient-to-r from-red-400 to-red-600'
                   }`} 
                   style={{ width: `${selectedProject.completionPercentage}%` }}
                 ></div>
               </div>
               
-              <div className="p-6 overflow-y-auto max-h-[50vh]">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
-                    <p className="text-gray-700 mb-6">{selectedProject.description}</p>
+              {/* Enhanced content area */}
+              <div className="p-8 overflow-y-auto max-h-[50vh] bg-white/5 backdrop-blur-sm">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-6">
+                      <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                        </svg>
+                        Description
+                      </h3>
+                      <p className="text-gray-200 leading-relaxed">{selectedProject.description}</p>
+                    </div>
                     
                     {selectedProject.videoUrl && (
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Video Preview</h3>
-                        <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-6">
+                        <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Video Preview
+                        </h3>
+                        <div className="relative aspect-video bg-black/50 rounded-xl overflow-hidden border border-white/20">
                           <video 
                             src={selectedProject.videoUrl} 
                             className="w-full h-full object-contain" 
@@ -1274,75 +1315,91 @@ function EditorProjectsDisplay() {
                       </div>
                     )}
                     
-                    {/* Only show update status section if project is not closed */}
+                    {/* Enhanced update status section */}
                     {selectedProject.status !== 'Closed' && selectedProject.status !== 'Completed' && (
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Update Status</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-6">
+                        <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Update Status
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                           <button
                             onClick={() => handleUpdateStatus(selectedProject._id, 'Just started - 25%')}
-                            className={`py-2 px-4 rounded-md text-sm font-medium ${
-                              selectedProject.completionPercentage <= 29 ? 'bg-red-600 text-white' : 'bg-red-100 text-red-800 hover:bg-red-200'
+                            className={`py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 backdrop-blur-sm border ${
+                              selectedProject.completionPercentage <= 29 ? 
+                                'bg-red-500/80 text-white border-red-400/50 shadow-lg' : 
+                                'bg-red-500/20 text-red-200 border-red-400/30 hover:bg-red-500/40 hover:border-red-400/50'
                             }`}
                           >
                             Just started
-                            <span className="block text-xs mt-1">0-29%</span>
+                            <span className="block text-xs mt-1 opacity-80">0-29%</span>
                           </button>
                           <button
                             onClick={() => handleUpdateStatus(selectedProject._id, 'Good progress - 45%')}
-                            className={`py-2 px-4 rounded-md text-sm font-medium ${
-                              selectedProject.completionPercentage >= 30 && selectedProject.completionPercentage <= 59 ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                            className={`py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 backdrop-blur-sm border ${
+                              selectedProject.completionPercentage >= 30 && selectedProject.completionPercentage <= 59 ? 
+                                'bg-yellow-500/80 text-white border-yellow-400/50 shadow-lg' : 
+                                'bg-yellow-500/20 text-yellow-200 border-yellow-400/30 hover:bg-yellow-500/40 hover:border-yellow-400/50'
                             }`}
                           >
                             Good progress
-                            <span className="block text-xs mt-1">30-59%</span>
+                            <span className="block text-xs mt-1 opacity-80">30-59%</span>
                           </button>
                           <button
                             onClick={() => handleUpdateStatus(selectedProject._id, 'Almost there - 75%')}
-                            className={`py-2 px-4 rounded-md text-sm font-medium ${
-                              selectedProject.completionPercentage >= 60 && selectedProject.completionPercentage <= 99 ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                            className={`py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 backdrop-blur-sm border ${
+                              selectedProject.completionPercentage >= 60 && selectedProject.completionPercentage <= 99 ? 
+                                'bg-blue-500/80 text-white border-blue-400/50 shadow-lg' : 
+                                'bg-blue-500/20 text-blue-200 border-blue-400/30 hover:bg-blue-500/40 hover:border-blue-400/50'
                             }`}
                           >
                             Almost there
-                            <span className="block text-xs mt-1">60-99%</span>
+                            <span className="block text-xs mt-1 opacity-80">60-99%</span>
                           </button>
                           <button
                             onClick={() => handleUpdateStatus(selectedProject._id, 'Completed')}
-                            className={`py-2 px-4 rounded-md text-sm font-medium ${
-                              selectedProject.completionPercentage === 100 ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800 hover:bg-green-200'
+                            className={`py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 backdrop-blur-sm border ${
+                              selectedProject.completionPercentage === 100 ? 
+                                'bg-green-500/80 text-white border-green-400/50 shadow-lg' : 
+                                'bg-green-500/20 text-green-200 border-green-400/30 hover:bg-green-500/40 hover:border-green-400/50'
                             }`}
                           >
                             Completed
-                            <span className="block text-xs mt-1">100%</span>
+                            <span className="block text-xs mt-1 opacity-80">100%</span>
                           </button>
                         </div>
                       </div>
                     )}
 
-                    {/* Project Conversation Section - Similar to CreatorProjectDisplay */}
-                    <div className="mb-6">
+                    {/* Enhanced Project Conversation Section */}
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-6">
                       <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Project Conversation</h3>
+                        <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                          <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          Project Conversation
+                        </h3>
                       </div>
                       
                       {loadingReviews || loadingResponses ? (
-                        <div className="flex items-center justify-center h-32">
+                        <div className="flex items-center justify-center h-32 bg-white/5 rounded-xl border border-white/10">
                           <div className="text-center">
-                            <svg className="animate-spin h-8 w-8 text-blue-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <p className="text-gray-600">Loading conversation...</p>
+                            <div className="animate-spin h-8 w-8 border-2 border-white/20 border-t-white/80 rounded-full mx-auto mb-3"></div>
+                            <p className="text-gray-300">Loading conversation...</p>
                           </div>
                         </div>
                       ) : (
                         <div className="space-y-4">
                           {videoResponses.length === 0 && reviews.length === 0 ? (
-                            <div className="bg-gray-50 p-4 rounded-md text-center">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-2xl text-center border border-white/20">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                               </svg>
-                              <p className="text-gray-600">No conversation yet.</p>
+                              <p className="text-gray-300">No conversation yet.</p>
+                              <p className="text-gray-400 text-sm mt-1">Start the conversation by updating the project status or leaving feedback.</p>
                             </div>
                           ) : (
                             [...videoResponses.map(response => ({
@@ -1359,40 +1416,44 @@ function EditorProjectsDisplay() {
                             .map((item, idx) => (
                               <div 
                                 key={`${item.type}-${idx}`} 
-                                className={`p-4 rounded-lg ${
+                                className={`p-5 rounded-xl backdrop-blur-sm border transition-all duration-200 hover:shadow-lg ${
                                   item.type === 'editor-response' 
-                                    ? 'bg-blue-50 border-l-4 border-blue-300' 
-                                    : 'bg-purple-50 border-l-4 border-purple-300'
+                                    ? 'bg-blue-500/10 border-blue-400/30 hover:border-blue-400/50' 
+                                    : 'bg-purple-500/10 border-purple-400/30 hover:border-purple-400/50'
                                 }`}
                               >
-                                <div className="flex items-start mb-2">
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                    item.type === 'editor-response' ? 'bg-blue-200' : 'bg-purple-200'
+                                <div className="flex items-start mb-3">
+                                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center backdrop-blur-sm border ${
+                                    item.type === 'editor-response' 
+                                      ? 'bg-blue-500/20 border-blue-400/30 text-blue-200' 
+                                      : 'bg-purple-500/20 border-purple-400/30 text-purple-200'
                                   }`}>
-                                    <span className="text-sm font-medium">
+                                    <span className="text-sm font-bold">
                                       {item.type === 'editor-response' ? 'E' : 'C'}
                                     </span>
                                   </div>
-                                  <div className="ml-3">
-                                    <span className="text-sm font-medium">
-                                      {item.type === 'editor-response' 
-                                        ? `Your Response #${item.index + 1}` 
-                                        : 'Creator Comment'}
-                                    </span>
-                                    <span className="ml-2 text-xs text-gray-500">
-                                      {item.timestamp.toLocaleDateString(undefined, {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}
-                                    </span>
+                                  <div className="ml-4 flex-1">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-sm font-semibold text-white">
+                                        {item.type === 'editor-response' 
+                                          ? `Your Response #${item.index + 1}` 
+                                          : 'Creator Comment'}
+                                      </span>
+                                      <span className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded-lg">
+                                        {item.timestamp.toLocaleDateString(undefined, {
+                                          year: 'numeric',
+                                          month: 'short',
+                                          day: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                                 
                                 {item.type === 'editor-response' && item.videoUrl && (
-                                  <div className="relative aspect-video bg-black rounded-lg overflow-hidden mb-3">
+                                  <div className="relative aspect-video bg-black/50 rounded-xl overflow-hidden mb-4 border border-white/20">
                                     <video 
                                       src={`http://localhost:4000${item.videoUrl}`} 
                                       controls
@@ -1401,8 +1462,8 @@ function EditorProjectsDisplay() {
                                   </div>
                                 )}
                                 
-                                <div className="prose max-w-none text-gray-700">
-                                  <p>{item.type === 'editor-response' ? 
+                                <div className="prose max-w-none">
+                                  <p className="text-gray-200 leading-relaxed">{item.type === 'editor-response' ? 
                                     (item.description || 'No description provided') : 
                                     (item.comment || 'No comment provided')}
                                   </p>
@@ -1415,21 +1476,26 @@ function EditorProjectsDisplay() {
                     </div>
                   </div>
 
-                  {/* Project details sidebar - keep as is */}
+                  {/* Enhanced Project details sidebar */}
                   <div className="space-y-6">
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="font-medium text-gray-900 mb-3">Project Details</h3>
-                      <dl className="space-y-2">
-                        <div className="grid grid-cols-3 gap-1">
-                          <dt className="text-sm font-medium text-gray-500">Creator:</dt>
-                          <dd className="text-sm text-gray-900 col-span-2 truncate">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                      <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Project Details
+                      </h3>
+                      <dl className="space-y-4">
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                          <dt className="text-sm font-medium text-gray-300 mb-1">Creator:</dt>
+                          <dd className="text-sm text-white truncate">
                             {selectedProject.userCreated ? (
                               <span className="font-medium">
                                 {selectedProject.userCreated}
                                 {selectedProject.creatorEmail && (
                                   <a 
                                     href={`mailto:${selectedProject.creatorEmail}`} 
-                                    className="ml-2 text-indigo-600 hover:text-indigo-800 hover:underline"
+                                    className="ml-2 text-blue-400 hover:text-blue-300 transition-colors"
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1441,7 +1507,7 @@ function EditorProjectsDisplay() {
                             ) : selectedProject.creatorEmail ? (
                               <a 
                                 href={`mailto:${selectedProject.creatorEmail}`} 
-                                className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                                className="text-blue-400 hover:text-blue-300 transition-colors"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {selectedProject.creatorName || selectedProject.creatorEmail.split('@')[0]}
@@ -1451,25 +1517,25 @@ function EditorProjectsDisplay() {
                             )}
                           </dd>
                         </div>
-                        <div className="grid grid-cols-3 gap-1">
-                          <dt className="text-sm font-medium text-gray-500">Status:</dt>
-                          <dd className="text-sm text-gray-900 col-span-2">{selectedProject.status}</dd>
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                          <dt className="text-sm font-medium text-gray-300 mb-1">Status:</dt>
+                          <dd className="text-sm text-white">{selectedProject.status}</dd>
                         </div>
-                        <div className="grid grid-cols-3 gap-1">
-                          <dt className="text-sm font-medium text-gray-500">Created:</dt>
-                          <dd className="text-sm text-gray-900 col-span-2">{formatDate(selectedProject.createdAt)}</dd>
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                          <dt className="text-sm font-medium text-gray-300 mb-1">Created:</dt>
+                          <dd className="text-sm text-white">{formatDate(selectedProject.createdAt)}</dd>
                         </div>
-                        <div className="grid grid-cols-3 gap-1">
-                          <dt className="text-sm font-medium text-gray-500">Deadline:</dt>
-                          <dd className={`text-sm col-span-2 ${getDeadlineStyles(selectedProject.daysRemaining, selectedProject.status)}`}>
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                          <dt className="text-sm font-medium text-gray-300 mb-1">Deadline:</dt>
+                          <dd className={`text-sm ${getDeadlineStyles(selectedProject.daysRemaining, selectedProject.status)}`}>
                             {formatDate(selectedProject.deadline)}
                           </dd>
                         </div>
-                        <div className="grid grid-cols-3 gap-1">
-                          <dt className="text-sm font-medium text-gray-500">Time Left:</dt>
-                          <dd className={`text-sm col-span-2 ${getDeadlineStyles(selectedProject.daysRemaining, selectedProject.status)}`}>
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                          <dt className="text-sm font-medium text-gray-300 mb-1">Time Left:</dt>
+                          <dd className={`text-sm ${getDeadlineStyles(selectedProject.daysRemaining, selectedProject.status)}`}>
                             {selectedProject.status === 'Completed' ? (
-                              <span className="flex items-center text-green-600">
+                              <span className="flex items-center text-green-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                 </svg>
@@ -1492,38 +1558,44 @@ function EditorProjectsDisplay() {
                       </dl>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex justify-between mb-2">
-                        <h3 className="font-medium text-gray-900">Completion</h3>
-                        <span className="text-sm font-medium text-gray-700">{selectedProject.completionPercentage}%</span>
+                    {/* Enhanced completion section */}
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-semibold text-white flex items-center gap-2">
+                          <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                          Completion
+                        </h3>
+                        <span className="text-lg font-bold text-white bg-white/10 px-3 py-1 rounded-xl">{selectedProject.completionPercentage}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div className="w-full bg-white/20 rounded-full h-3 mb-4 overflow-hidden">
                         <div 
-                          className={`h-2.5 rounded-full ${
-                            selectedProject.completionPercentage === 100 ? 'bg-green-500' : 
-                            selectedProject.completionPercentage >= 60 ? 'bg-blue-500' : 
-                            selectedProject.completionPercentage >= 30 ? 'bg-yellow-500' : 
-                            'bg-red-500'
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            selectedProject.completionPercentage === 100 ? 'bg-gradient-to-r from-green-400 to-green-600' : 
+                            selectedProject.completionPercentage >= 60 ? 'bg-gradient-to-r from-blue-400 to-blue-600' : 
+                            selectedProject.completionPercentage >= 30 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 
+                            'bg-gradient-to-r from-red-400 to-red-600'
                           }`} 
                           style={{ width: `${selectedProject.completionPercentage}%` }}>
                         </div>
                       </div>
-                      <div className="mt-4">
+                      <div className="space-y-3">
                         <div className="flex items-center text-sm">
-                          <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                          <span className="text-gray-600">100%: Completed</span>
+                          <div className="w-3 h-3 rounded-full bg-green-500 mr-3"></div>
+                          <span className="text-gray-200">100%: Completed</span>
                         </div>
-                        <div className="flex items-center text-sm mt-1">
-                          <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                          <span className="text-gray-600">60-99%: Almost there</span>
+                        <div className="flex items-center text-sm">
+                          <div className="w-3 h-3 rounded-full bg-blue-500 mr-3"></div>
+                          <span className="text-gray-200">60-99%: Almost there</span>
                         </div>
-                        <div className="flex items-center text-sm mt-1">
-                          <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-                          <span className="text-gray-600">30-59%: Good progress</span>
+                        <div className="flex items-center text-sm">
+                          <div className="w-3 h-3 rounded-full bg-yellow-500 mr-3"></div>
+                          <span className="text-gray-200">30-59%: Good progress</span>
                         </div>
-                        <div className="flex items-center text-sm mt-1">
-                          <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                          <span className="text-gray-600">0-29%: Just started</span>
+                        <div className="flex items-center text-sm">
+                          <div className="w-3 h-3 rounded-full bg-red-500 mr-3"></div>
+                          <span className="text-gray-200">0-29%: Just started</span>
                         </div>
                       </div>
                     </div>
@@ -1531,29 +1603,34 @@ function EditorProjectsDisplay() {
                 </div>
               </div>
               
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-wrap justify-between gap-3">
+              {/* Enhanced footer */}
+              <div className="px-8 py-6 bg-white/5 backdrop-blur-sm border-t border-white/10">
                 {selectedProject.status === 'Closed' ? (
-                  <div className="w-full flex justify-end">
+                  <div className="flex justify-end">
                     <button
                       onClick={closeProjectDetails}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                      className="inline-flex items-center px-6 py-3 border border-white/20 text-sm font-medium rounded-xl text-gray-300 bg-white/10 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all duration-200 shadow-lg"
                     >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
                       Close
                     </button>
                   </div>
                 ) : (
-                  <>
-                    <div>
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    {/* Left side - Action buttons */}
+                    <div className="flex flex-wrap gap-3 order-2 sm:order-1">
                       {selectedProject.status !== 'Completed' && selectedProject.status !== 'Closed' && (
                         <div className="relative status-dropdown-container">
                           <button
                             onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                             disabled={isUpdatingStatus}
-                            className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                            className={`inline-flex items-center px-6 py-3 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white backdrop-blur-sm transition-all duration-200 ${
                               isUpdatingStatus 
-                                ? 'bg-green-400 cursor-not-allowed' 
-                                : 'bg-green-600 hover:bg-green-700'
-                            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
+                                ? 'bg-green-500/60 cursor-not-allowed border-green-400/30' 
+                                : 'bg-green-600/80 hover:bg-green-600 border-green-500/30 hover:border-green-500/50'
+                            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500/50`}
                           >
                             {isUpdatingStatus ? (
                               <>
@@ -1565,7 +1642,7 @@ function EditorProjectsDisplay() {
                               </>
                             ) : (
                               <>
-                                <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <svg className="-ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                 </svg>
                                 Update Status
@@ -1574,7 +1651,7 @@ function EditorProjectsDisplay() {
                           </button>
                           
                           {showStatusDropdown && (
-                            <div className="absolute bottom-full left-0 mb-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                            <div className="absolute bottom-full left-0 mb-2 w-48 rounded-xl shadow-xl bg-white/10 backdrop-blur-xl border border-white/20 z-10">
                               {/* Dropdown content remains unchanged */}
                             </div>
                           )}
@@ -1585,9 +1662,9 @@ function EditorProjectsDisplay() {
                         <>
                           <button
                             onClick={() => handleOpenVideoModal(selectedProject._id)}
-                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            className="inline-flex items-center px-6 py-3 border border-blue-500/30 rounded-xl shadow-lg text-sm font-medium text-white bg-blue-600/80 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all duration-200 hover:border-blue-500/50"
                           >
-                            <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <svg className="-ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                               <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
                               <path stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 4h2a2 2 0 012 2v8a2 2 0 01-2 2h-2" />
                             </svg>
@@ -1596,9 +1673,9 @@ function EditorProjectsDisplay() {
                           
                           <button
                             onClick={() => handleOpenYouTubeModal(selectedProject)}
-                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            className="inline-flex items-center px-6 py-3 border border-red-500/30 rounded-xl shadow-lg text-sm font-medium text-white bg-red-600/80 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500/50 backdrop-blur-sm transition-all duration-200 hover:border-red-500/50"
                           >
-                            <svg className="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                            <svg className="-ml-1 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                             </svg>
                             Upload to YouTube
@@ -1606,11 +1683,16 @@ function EditorProjectsDisplay() {
                         </>
                       )}
                     </div>
-                    <div className="space-x-2">
+                    
+                    {/* Right side - Secondary buttons */}
+                    <div className="flex flex-wrap gap-3 order-1 sm:order-2">
                       <button
                         onClick={closeProjectDetails}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                        className="inline-flex items-center px-6 py-3 border border-white/20 text-sm font-medium rounded-xl text-gray-300 bg-white/10 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500/50 backdrop-blur-sm transition-all duration-200 shadow-lg"
                       >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                         Close
                       </button>
                       
@@ -1621,9 +1703,9 @@ function EditorProjectsDisplay() {
                             const subject = `RE: ${selectedProject.title}`;
                             window.location.href = `mailto:${creatorEmail}?subject=${encodeURIComponent(subject)}`;
                           }}
-                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          className="inline-flex items-center px-6 py-3 border border-blue-500/30 text-sm font-medium rounded-xl text-white bg-blue-600/80 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all duration-200 shadow-lg hover:border-blue-500/50"
                         >
-                          <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <svg className="-ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                             <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                           </svg>
@@ -1634,16 +1716,16 @@ function EditorProjectsDisplay() {
                       {selectedProject.status === 'Completed' && (
                         <button
                           onClick={() => handleUpdateStatus(selectedProject._id, 'Closed')}
-                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                          className="inline-flex items-center px-6 py-3 border border-green-500/30 text-sm font-medium rounded-xl text-white bg-green-600/80 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500/50 backdrop-blur-sm transition-all duration-200 shadow-lg hover:border-green-500/50"
                         >
-                          <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <svg className="-ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8.586 10l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                           Mark as Closed
                         </button>
                       )}
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
@@ -1651,17 +1733,17 @@ function EditorProjectsDisplay() {
         </div>
       )}
 
-      {/* Video Response Modal */}
+      {/* Enhanced Video Response Modal */}
       {videoModalOpen && selectedProject && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">
-                Video Response for "{selectedProject.title}"
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-white/20">
+            <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5 backdrop-blur-sm">
+              <h3 className="text-lg font-semibold text-white">
+                Video Response for "<span className="text-blue-300">{selectedProject.title}</span>"
               </h3>
               <button 
                 onClick={() => setVideoModalOpen(false)} 
-                className="text-gray-400 hover:text-gray-500"
+                className="text-gray-400 hover:text-white transition-colors duration-200 p-2 rounded-xl hover:bg-white/10"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1669,22 +1751,24 @@ function EditorProjectsDisplay() {
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-8rem)]">
-              {/* Existing Video Responses */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-8rem)] bg-white/5 backdrop-blur-sm">
+              {/* Enhanced Existing Video Responses */}
               {videoResponses.length > 0 && (
                 <div className="mb-8">
-                  <h4 className="text-lg font-medium text-gray-900 mb-4">Previous Responses</h4>
+                  <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Previous Responses
+                  </h4>
                   
-                  {/* Video player */}
-                  <div className="relative aspect-video bg-black rounded-lg overflow-hidden mb-4">
+                  {/* Enhanced Video player */}
+                  <div className="relative aspect-video bg-black/50 rounded-xl overflow-hidden mb-6 border border-white/20">
                     {loadingResponses ? (
                       <div className="flex items-center justify-center h-full">
                         <div className="text-center">
-                          <svg className="animate-spin h-10 w-10 text-blue-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          <p className="text-white">Loading video responses...</p>
+                          <div className="animate-spin h-10 w-10 border-2 border-white/20 border-t-white/80 rounded-full mx-auto mb-4"></div>
+                          <p className="text-gray-300">Loading responses...</p>
                         </div>
                       </div>
                     ) : videoResponses[activeVideoResponse]?.videoUrl ? (
@@ -1859,17 +1943,17 @@ function EditorProjectsDisplay() {
         </div>
       )}
 
-      {/* YouTube Upload Modal */}
+      {/* Enhanced YouTube Upload Modal */}
       {youtubeUploadModalOpen && selectedProjectForYoutube && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-white/20">
+            <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5 backdrop-blur-sm">
+              <h3 className="text-lg font-semibold text-white">
                 Upload to YouTube
               </h3>
               <button 
                 onClick={handleCloseYouTubeModal} 
-                className="text-gray-400 hover:text-gray-500"
+                className="text-gray-400 hover:text-white transition-colors duration-200 p-2 rounded-xl hover:bg-white/10"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1877,7 +1961,7 @@ function EditorProjectsDisplay() {
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-8rem)]">
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-8rem)] bg-white/5 backdrop-blur-sm">
               <YouTubeUpload 
                 project={selectedProjectForYoutube}
                 onUploadSuccess={handleYouTubeUploadSuccess}

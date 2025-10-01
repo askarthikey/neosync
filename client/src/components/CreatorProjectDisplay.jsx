@@ -463,6 +463,195 @@ function CreatorProjectDisplay() {
     }
   };
 
+  // Handle reopening a closed project with Completed status
+  const handleReopenProject = async (projectId) => {
+    if (closingProject) return; // Reuse the same loading state
+
+    setClosingProject(true);
+
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`http://localhost:4000/projectApi/reopen-project/${projectId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          status: 'Completed',
+          completionPercentage: 100
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to reopen project");
+      }
+
+      // Update the selectedProject status to 'Completed' and mark as completed in the projects list
+      setSelectedProject(prev =>
+        prev && prev._id === projectId
+          ? { ...prev, status: 'Completed', completionPercentage: 100 }
+          : prev
+      );
+
+      setProjects(prevProjects =>
+        prevProjects.map(p =>
+          p._id === projectId ? { ...p, status: 'Completed', completionPercentage: 100 } : p
+        )
+      );
+
+      showToast('Project reopened successfully as Completed!', 'success');
+    } catch (error) {
+      console.error("Error reopening project:", error);
+      setCloseError(error.message || "An error occurred while reopening the project");
+      showToast('Failed to reopen project', 'error');
+    } finally {
+      setClosingProject(false);
+    }
+  };
+
+  // YouTube Permission Management
+  const handleGrantYouTubeAccess = async (projectId) => {
+    if (closingProject) return; // Reuse the same loading state
+
+    setClosingProject(true);
+
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`http://localhost:4000/projectApi/grant-youtube-access/${projectId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to grant YouTube access");
+      }
+
+      // Update the selectedProject with YouTube access info
+      setSelectedProject(prev =>
+        prev && prev._id === projectId
+          ? { 
+              ...prev, 
+              youtubeAccess: {
+                granted: true,
+                grantedAt: new Date(),
+                expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1 hour from now
+              }
+            }
+          : prev
+      );
+
+      setProjects(prevProjects =>
+        prevProjects.map(p =>
+          p._id === projectId 
+            ? { 
+                ...p, 
+                youtubeAccess: {
+                  granted: true,
+                  grantedAt: new Date(),
+                  expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+                }
+              } 
+            : p
+        )
+      );
+
+      showToast('YouTube access granted for 1 hour!', 'success');
+    } catch (error) {
+      console.error("Error granting YouTube access:", error);
+      setCloseError(error.message || "An error occurred while granting YouTube access");
+      showToast('Failed to grant YouTube access', 'error');
+    } finally {
+      setClosingProject(false);
+    }
+  };
+
+  const handleRevokeYouTubeAccess = async (projectId) => {
+    if (closingProject) return;
+
+    setClosingProject(true);
+
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`http://localhost:4000/projectApi/revoke-youtube-access/${projectId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to revoke YouTube access");
+      }
+
+      // Update the selectedProject to remove YouTube access
+      setSelectedProject(prev =>
+        prev && prev._id === projectId
+          ? { 
+              ...prev, 
+              youtubeAccess: {
+                granted: false,
+                revokedAt: new Date()
+              }
+            }
+          : prev
+      );
+
+      setProjects(prevProjects =>
+        prevProjects.map(p =>
+          p._id === projectId 
+            ? { 
+                ...p, 
+                youtubeAccess: {
+                  granted: false,
+                  revokedAt: new Date()
+                }
+              } 
+            : p
+        )
+      );
+
+      showToast('YouTube access revoked!', 'success');
+    } catch (error) {
+      console.error("Error revoking YouTube access:", error);
+      setCloseError(error.message || "An error occurred while revoking YouTube access");
+      showToast('Failed to revoke YouTube access', 'error');
+    } finally {
+      setClosingProject(false);
+    }
+  };
+
+  // Helper function to check if YouTube access is still valid
+  const isYouTubeAccessValid = (project) => {
+    if (!project.youtubeAccess || !project.youtubeAccess.granted) {
+      return false;
+    }
+    
+    if (project.youtubeAccess.expiresAt) {
+      return new Date(project.youtubeAccess.expiresAt) > new Date();
+    }
+    
+    return false;
+  };
+
+  // Helper function to get remaining time for YouTube access
+  const getYouTubeAccessTimeRemaining = (project) => {
+    if (!isYouTubeAccessValid(project)) {
+      return 0;
+    }
+    
+    const expiresAt = new Date(project.youtubeAccess.expiresAt);
+    const now = new Date();
+    return Math.max(0, Math.floor((expiresAt - now) / 1000 / 60)); // minutes remaining
+  };
+
   // Load user data and fetch projects
   useEffect(() => {
     setIsVisible(true);
@@ -2038,6 +2227,100 @@ function CreatorProjectDisplay() {
                                     </>
                                   )}
                                 </button>
+                              )}
+
+                              {selectedProject.status === 'Closed' && (
+                                <button
+                                  onClick={() => handleReopenProject(selectedProject._id)}
+                                  disabled={closingProject}
+                                  className="w-full px-4 py-3 bg-green-500/20 text-green-300 rounded-xl border border-green-500/30 hover:bg-green-500/30 transition-all duration-300 backdrop-blur-sm text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+                                >
+                                  {closingProject ? (
+                                    <>
+                                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 718-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                      </svg>
+                                      Reopening...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                      </svg>
+                                      Reopen Project
+                                    </>
+                                  )}
+                                </button>
+                              )}
+
+                              {/* YouTube Permission Management */}
+                              {(selectedProject.status === 'Completed' || selectedProject.status === 'In Progress' || selectedProject.status.includes('In Progress')) && (
+                                <div className="space-y-3">
+                                  {isYouTubeAccessValid(selectedProject) ? (
+                                    <div className="bg-green-500/10 backdrop-blur-sm border border-green-500/30 rounded-xl p-4">
+                                      <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                          <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          <span className="text-green-300 font-medium">YouTube Access Granted</span>
+                                        </div>
+                                        <span className="text-xs text-green-400 bg-green-500/20 px-2 py-1 rounded-lg">
+                                          {getYouTubeAccessTimeRemaining(selectedProject)} min left
+                                        </span>
+                                      </div>
+                                      <p className="text-green-200 text-sm mb-3">
+                                        Editor can now upload videos to your YouTube channel. Access expires in {getYouTubeAccessTimeRemaining(selectedProject)} minutes.
+                                      </p>
+                                      <button
+                                        onClick={() => handleRevokeYouTubeAccess(selectedProject._id)}
+                                        disabled={closingProject}
+                                        className="w-full px-4 py-2 bg-red-500/20 text-red-300 rounded-xl border border-red-500/30 hover:bg-red-500/30 transition-all duration-300 backdrop-blur-sm text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+                                      >
+                                        {closingProject ? (
+                                          <>
+                                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 718-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Revoking...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            Revoke YouTube Access
+                                          </>
+                                        )}
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleGrantYouTubeAccess(selectedProject._id)}
+                                      disabled={closingProject}
+                                      className="w-full px-4 py-3 bg-red-500/20 text-red-300 rounded-xl border border-red-500/30 hover:bg-red-500/30 transition-all duration-300 backdrop-blur-sm text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+                                    >
+                                      {closingProject ? (
+                                        <>
+                                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 718-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                          </svg>
+                                          Granting Access...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                          </svg>
+                                          Allow YouTube Upload (1 hour)
+                                        </>
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
                               )}
                             </>
                           )}
