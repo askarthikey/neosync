@@ -251,6 +251,12 @@ router.post('/youtube/disconnect', authMiddleware, async (req, res) => {
  */
 router.post('/youtube/upload/:projectId', authMiddleware, validateFiles, async (req, res) => {
   try {
+    console.log('🎬 YouTube upload request received');
+    console.log('📋 Request params:', req.params);
+    console.log('👤 User:', req.user?.username);
+    console.log('📁 Files:', Object.keys(req.files || {}));
+    console.log('📝 Body fields:', Object.keys(req.body));
+
     const { projectId } = req.params;
     const { title, description, tags, creatorUsername } = req.body;
     const editorUsername = req.user.username;
@@ -269,14 +275,26 @@ router.post('/youtube/upload/:projectId', authMiddleware, validateFiles, async (
     
     const project = await projectsCollection.findOne({ _id: new ObjectId(projectId) });
     if (!project) {
+      console.error('❌ Project not found:', projectId);
       return res.status(404).json({
         success: false,
         message: 'Project not found'
       });
     }
     
+    console.log('📊 Project found:', { 
+      title: project.title, 
+      status: project.status,
+      editorEmail: project.editorEmail,
+      userCreated: project.userCreated
+    });
+    
     // Verify editor is assigned to this project
     if (project.editorEmail !== req.user.email) {
+      console.error('❌ Editor not authorized:', { 
+        projectEditor: project.editorEmail, 
+        requestUser: req.user.email 
+      });
       return res.status(403).json({
         success: false,
         message: 'You are not authorized to upload for this project'
@@ -285,7 +303,19 @@ router.post('/youtube/upload/:projectId', authMiddleware, validateFiles, async (
     
     // Get creator's YouTube credentials
     const creator = await usersCollection.findOne({ username: creatorUsername });
-    if (!creator || !creator.youtubeAuth || !creator.youtubeAuth.isActive) {
+    if (!creator) {
+      console.error('❌ Creator not found:', creatorUsername);
+      return res.status(400).json({
+        success: false,
+        message: 'Project creator not found'
+      });
+    }
+    
+    if (!creator.youtubeAuth || !creator.youtubeAuth.isActive) {
+      console.error('❌ Creator YouTube not connected:', { 
+        hasAuth: !!creator.youtubeAuth,
+        isActive: creator.youtubeAuth?.isActive
+      });
       return res.status(400).json({
         success: false,
         message: 'Creator has not connected their YouTube channel'
@@ -300,8 +330,10 @@ router.post('/youtube/upload/:projectId', authMiddleware, validateFiles, async (
     
     // Check if token needs refresh
     if (Date.now() >= youtubeTokens.expiry_date) {
+      console.log('🔄 Token expired, refreshing...');
       const refreshResult = await refreshYouTubeToken(youtubeTokens.refresh_token);
       if (!refreshResult.success) {
+        console.error('❌ Token refresh failed:', refreshResult.error);
         return res.status(401).json({
           success: false,
           message: 'YouTube token expired and refresh failed. Creator needs to re-authenticate.',
@@ -321,6 +353,7 @@ router.post('/youtube/upload/:projectId', authMiddleware, validateFiles, async (
           }
         }
       );
+      console.log('✅ Token refreshed successfully');
     }
      // Prepare video data
     console.log('📋 Preparing video upload data...');
@@ -411,7 +444,7 @@ router.post('/youtube/upload/:projectId', authMiddleware, validateFiles, async (
     });
     
   } catch (error) {
-    console.error('Error uploading to YouTube:', error);
+    console.error('💥 Error uploading to YouTube:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to upload video to YouTube',

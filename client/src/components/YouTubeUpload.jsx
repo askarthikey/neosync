@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNotifications } from '../context/NotificationContext';
 
 const YouTubeUpload = ({ project, onUploadSuccess }) => {
+  const { showToast } = useNotifications();
   const [uploadData, setUploadData] = useState({
     title: project.title || '',
     description: project.description || '',
@@ -12,6 +14,28 @@ const YouTubeUpload = ({ project, onUploadSuccess }) => {
   });
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+  const [uploadError, setUploadError] = useState(null);
+  const [creatorYouTubeStatus, setCreatorYouTubeStatus] = useState(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Check if creator has connected YouTube account
+  React.useEffect(() => {
+    const checkCreatorYouTubeAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        // Note: This would need a new endpoint to check another user's YouTube status
+        // For now, we'll assume it's connected and handle errors during upload
+        setCreatorYouTubeStatus({ isAuthenticated: true });
+      } catch (error) {
+        console.error('Error checking creator YouTube auth:', error);
+        setCreatorYouTubeStatus({ isAuthenticated: false });
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+
+    checkCreatorYouTubeAuth();
+  }, [project.userCreated]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -35,18 +59,21 @@ const YouTubeUpload = ({ project, onUploadSuccess }) => {
     e.preventDefault();
     
     if (!files.video) {
-      alert('Please select a video file');
+      setUploadError('Please select a video file');
+      showToast('Please select a video file', 'error');
       return;
     }
 
     if (!uploadData.title.trim()) {
-      alert('Please enter a video title');
+      setUploadError('Please enter a video title');
+      showToast('Please enter a video title', 'error');
       return;
     }
 
     try {
       setUploading(true);
       setUploadProgress('Preparing upload...');
+      setUploadError(null);
 
       const formData = new FormData();
       formData.append('video', files.video);
@@ -61,6 +88,17 @@ const YouTubeUpload = ({ project, onUploadSuccess }) => {
       setUploadProgress('Uploading to YouTube...');
 
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.');
+      }
+
+      console.log('Uploading to:', `http://localhost:4000/youtubeApi/youtube/upload/${project._id}`);
+      console.log('Project data:', { 
+        id: project._id, 
+        userCreated: project.userCreated,
+        title: uploadData.title 
+      });
+
       const response = await fetch(`http://localhost:4000/youtubeApi/youtube/upload/${project._id}`, {
         method: 'POST',
         headers: {
@@ -70,10 +108,11 @@ const YouTubeUpload = ({ project, onUploadSuccess }) => {
       });
 
       const data = await response.json();
+      console.log('Upload response:', data);
 
       if (data.success) {
         setUploadProgress('Upload completed successfully!');
-        alert(`Video uploaded to YouTube successfully!\nVideo URL: ${data.youtube.url}`);
+        showToast(`Video uploaded to YouTube successfully!`, 'success');
         
         // Reset form
         setFiles({ video: null, thumbnail: null });
@@ -91,7 +130,9 @@ const YouTubeUpload = ({ project, onUploadSuccess }) => {
       }
     } catch (error) {
       console.error('Error uploading to YouTube:', error);
-      alert(`Failed to upload to YouTube: ${error.message}`);
+      const errorMessage = error.message || 'Failed to upload to YouTube';
+      setUploadError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setUploading(false);
       setUploadProgress('');
@@ -107,7 +148,41 @@ const YouTubeUpload = ({ project, onUploadSuccess }) => {
         <h3 className="text-xl font-semibold text-gray-800">Upload to YouTube</h3>
       </div>
 
+      {checkingAuth ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mr-3"></div>
+          <span className="text-gray-600">Checking YouTube authentication...</span>
+        </div>
+      ) : (
+        <>
+          {/* Info about YouTube authentication */}
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-md p-4">
+            <h4 className="font-medium text-blue-800 mb-2">YouTube Upload Information:</h4>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• Video will be uploaded to <strong>{project.userCreated}</strong>'s YouTube channel</li>
+              <li>• The creator must have connected their YouTube account</li>
+              <li>• Videos are uploaded as private for creator review</li>
+              <li>• Upload may take several minutes depending on file size</li>
+            </ul>
+          </div>
+
       <form onSubmit={handleUploadToYouTube} className="space-y-4">
+        {/* Error Display */}
+        {uploadError && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{uploadError}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Video File */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -225,16 +300,18 @@ const YouTubeUpload = ({ project, onUploadSuccess }) => {
         </button>
       </form>
 
-      {/* Info */}
-      <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-md p-4">
-        <h4 className="font-medium text-yellow-800 mb-2">Important Notes:</h4>
-        <ul className="text-sm text-yellow-700 space-y-1">
-          <li>• Videos are uploaded as private initially</li>
-          <li>• The content creator can review and publish the video</li>
-          <li>• Make sure the creator has connected their YouTube channel</li>
-          <li>• Upload may take several minutes depending on file size</li>
-        </ul>
-      </div>
+          {/* Info */}
+          <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-md p-4">
+            <h4 className="font-medium text-yellow-800 mb-2">Important Notes:</h4>
+            <ul className="text-sm text-yellow-700 space-y-1">
+              <li>• Videos are uploaded as private initially</li>
+              <li>• The content creator can review and publish the video</li>
+              <li>• Make sure the creator has connected their YouTube channel</li>
+              <li>• Upload may take several minutes depending on file size</li>
+            </ul>
+          </div>
+        </>
+      )}
     </div>
   );
 };

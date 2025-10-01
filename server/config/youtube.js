@@ -183,11 +183,11 @@ async function uploadVideoToYouTube(tokens, videoData) {
 async function refreshYouTubeToken(refreshToken) {
   try {
     oauth2Client.setCredentials({ refresh_token: refreshToken });
-    const response = await oauth2Client.getAccessToken();
+    const response = await oauth2Client.refreshAccessToken();
     
     return { 
       success: true, 
-      accessToken: response.token 
+      tokens: response.credentials
     };
   } catch (error) {
     console.error('Error refreshing YouTube token:', error);
