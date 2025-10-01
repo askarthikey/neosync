@@ -668,7 +668,7 @@ function EditorProjectsDisplay() {
   if (isLoading) {
     return (
       <>
-        {/* Custom animations */}
+        {/* Enhanced Custom animations */}
         <style>{`
           @keyframes float {
             0%, 100% { transform: translateY(0px); }
@@ -680,6 +680,18 @@ function EditorProjectsDisplay() {
             50% { opacity: 0.8; transform: scale(1.05); }
           }
           
+          @keyframes cosmic-drift {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+          }
+          
+          @keyframes aurora {
+            0%, 100% { opacity: 0.2; transform: translateX(-100px) scaleY(1); }
+            50% { opacity: 0.8; transform: translateX(100px) scaleY(1.2); }
+          }
+          
           .animate-float {
             animation: float 6s ease-in-out infinite;
           }
@@ -687,9 +699,23 @@ function EditorProjectsDisplay() {
           .animate-pulse-glow {
             animation: pulse-glow 2s ease-in-out infinite;
           }
+          
+          .animate-cosmic-drift {
+            animation: cosmic-drift 20s linear infinite;
+          }
+          
+          .animate-aurora {
+            animation: aurora 8s ease-in-out infinite;
+          }
         `}</style>
 
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-blue-900 relative overflow-hidden">
+          {/* Dynamic aurora effect */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 animate-aurora"></div>
+            <div className="absolute bottom-0 right-0 w-full h-1/3 bg-gradient-to-l from-cyan-500/10 to-pink-500/10 animate-aurora" style={{animationDelay: '4s'}}></div>
+          </div>
+
           {/* Dynamic background gradient */}
           <div 
             className="absolute inset-0 opacity-30 transition-all duration-1000 ease-out pointer-events-none"
@@ -698,11 +724,13 @@ function EditorProjectsDisplay() {
             }}
           />
 
-          {/* Floating particles */}
+          {/* Enhanced floating particles */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-20 left-10 w-2 h-2 bg-blue-400/30 rounded-full animate-float" style={{animationDelay: '0s'}}></div>
             <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-purple-400/40 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
             <div className="absolute bottom-32 left-1/4 w-1 h-1 bg-cyan-400/50 rounded-full animate-float" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-pink-400/30 rounded-full animate-cosmic-drift"></div>
+            <div className="absolute bottom-1/4 left-1/2 w-1 h-1 bg-yellow-400/40 rounded-full animate-cosmic-drift" style={{animationDelay: '10s'}}></div>
           </div>
 
           <div className="relative z-10 flex items-center justify-center min-h-screen pt-20 pb-8">
@@ -725,7 +753,7 @@ function EditorProjectsDisplay() {
   if (error) {
     return (
       <>
-        {/* Custom animations */}
+        {/* Enhanced Custom animations */}
         <style>{`
           @keyframes float {
             0%, 100% { transform: translateY(0px); }
@@ -738,12 +766,21 @@ function EditorProjectsDisplay() {
             75% { transform: translateX(5px); }
           }
           
+          @keyframes error-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+          }
+          
           .animate-float {
             animation: float 6s ease-in-out infinite;
           }
           
           .animate-shake {
             animation: shake 0.5s ease-in-out;
+          }
+          
+          .animate-error-pulse {
+            animation: error-pulse 2s infinite;
           }
         `}</style>
 
@@ -765,7 +802,7 @@ function EditorProjectsDisplay() {
           <div className="relative z-10 flex items-center justify-center min-h-screen pt-20 pb-8 px-4">
             <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl max-w-md w-full animate-shake">
               <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4 animate-error-pulse">
                   <svg className="h-8 w-8 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
@@ -775,7 +812,7 @@ function EditorProjectsDisplay() {
                 <button
                   type="button"
                   onClick={() => window.location.reload()}
-                  className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-medium rounded-xl hover:from-red-600 hover:to-pink-700 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500/50 transition-all duration-300 shadow-lg"
+                  className="px-6 py-3 bg-gradient-to-r from-red-500/20 to-pink-600/20 text-white font-medium rounded-xl border border-red-500/30 hover:from-red-500/30 hover:to-pink-600/30 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500/50 transition-all duration-300 shadow-lg backdrop-blur-sm"
                 >
                   Try Again
                 </button>
@@ -788,256 +825,373 @@ function EditorProjectsDisplay() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
-      {statusUpdateMessage && (
-        <div className="fixed bottom-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg z-50 flex items-center">
-          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          </svg>
-          <span>{statusUpdateMessage}</span>
-        </div>
-      )}
+    <>
+      {/* Enhanced Custom animations */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes pulse-glow {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        
+        @keyframes cosmic-drift {
+          0% { transform: translate(0, 0) rotate(0deg); }
+          33% { transform: translate(30px, -30px) rotate(120deg); }
+          66% { transform: translate(-20px, 20px) rotate(240deg); }
+          100% { transform: translate(0, 0) rotate(360deg); }
+        }
+        
+        @keyframes aurora {
+          0%, 100% { opacity: 0.2; transform: translateX(-100px) scaleY(1); }
+          50% { opacity: 0.8; transform: translateX(100px) scaleY(1.2); }
+        }
+        
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-pulse-glow {
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        .animate-cosmic-drift {
+          animation: cosmic-drift 20s linear infinite;
+        }
+        
+        .animate-aurora {
+          animation: aurora 8s ease-in-out infinite;
+        }
+        
+        .shimmer {
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .shimmer::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+          animation: shimmer 2s infinite;
+        }
+      `}</style>
 
-      {/* Stats Dashboard */}
-      <div className="bg-white rounded-lg shadow-lg mb-8 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-5">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-white">My Assigned Projects</h1>
-              <p className="mt-1 text-blue-100">Manage and track all projects assigned to you</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-blue-900 relative overflow-hidden">
+        {/* Dynamic aurora effect */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 animate-aurora"></div>
+          <div className="absolute bottom-0 right-0 w-full h-1/3 bg-gradient-to-l from-cyan-500/10 to-pink-500/10 animate-aurora" style={{animationDelay: '4s'}}></div>
+        </div>
+
+        {/* Dynamic background gradient */}
+        <div 
+          className="absolute inset-0 opacity-30 transition-all duration-1000 ease-out pointer-events-none"
+          style={{
+            background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.2), transparent 50%)`
+          }}
+        />
+
+        {/* Enhanced floating particles */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-20 left-10 w-2 h-2 bg-blue-400/30 rounded-full animate-float" style={{animationDelay: '0s'}}></div>
+          <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-purple-400/40 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-32 left-1/4 w-1 h-1 bg-cyan-400/50 rounded-full animate-float" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-pink-400/30 rounded-full animate-cosmic-drift"></div>
+          <div className="absolute bottom-1/4 left-1/2 w-1 h-1 bg-yellow-400/40 rounded-full animate-cosmic-drift" style={{animationDelay: '10s'}}></div>
+          <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-green-400/30 rounded-full animate-float" style={{animationDelay: '3s'}}></div>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+          {statusUpdateMessage && (
+            <div className="fixed bottom-4 right-4 bg-green-500/20 backdrop-blur-sm border border-green-400/30 text-green-300 px-4 py-3 rounded-xl shadow-lg z-50 flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span>{statusUpdateMessage}</span>
+            </div>
+          )}
+
+          {/* Enhanced Header Section */}
+          <div className="mb-8">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/20">
+              <div className="bg-gradient-to-r from-blue-600/20 to-indigo-700/20 px-6 py-8 relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10"></div>
+                <div className="relative">
+                  <div className="flex flex-col md:flex-row justify-between items-start">
+                    <div>
+                      <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                        My Assigned Projects
+                      </h1>
+                      <p className="mt-2 text-blue-100/80 text-lg">Manage and track all projects assigned to you</p>
+                    </div>
+                    <div className="mt-4 md:mt-0 flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-green-200 text-sm font-medium">Active Dashboard</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Enhanced Stats Dashboard */}
+              <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-white/10">
+                <div className="p-6 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-3xl font-bold text-white group-hover:text-blue-300 transition-colors">{statsData.total}</div>
+                  <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Total Projects</div>
+                  <div className="w-full h-1 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-full mt-2"></div>
+                </div>
+                <div className="p-6 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-3xl font-bold text-blue-400 group-hover:text-blue-300 transition-colors">{statsData.inProgress}</div>
+                  <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">In Progress</div>
+                  <div className="w-full h-1 bg-gradient-to-r from-blue-500/50 to-cyan-500/50 rounded-full mt-2"></div>
+                </div>
+                <div className="p-6 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-3xl font-bold text-green-400 group-hover:text-green-300 transition-colors">{statsData.completed}</div>
+                  <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Completed</div>
+                  <div className="w-full h-1 bg-gradient-to-r from-green-500/50 to-emerald-500/50 rounded-full mt-2"></div>
+                </div>
+                <div className="p-6 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-3xl font-bold text-green-500 group-hover:text-green-400 transition-colors">{statsData.closed}</div>
+                  <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Closed</div>
+                  <div className="w-full h-1 bg-gradient-to-r from-green-600/50 to-teal-500/50 rounded-full mt-2"></div>
+                </div>
+                <div className="p-6 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-3xl font-bold text-red-400 group-hover:text-red-300 transition-colors">{statsData.overdue}</div>
+                  <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Overdue</div>
+                  <div className="w-full h-1 bg-gradient-to-r from-red-500/50 to-pink-500/50 rounded-full mt-2"></div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-gray-200">
-          <div className="p-5 text-center">
-            <div className="text-2xl font-bold text-gray-900">{statsData.total}</div>
-            <div className="text-sm text-gray-500">Total Projects</div>
-          </div>
-          <div className="p-5 text-center">
-            <div className="text-2xl font-bold text-blue-600">{statsData.inProgress}</div>
-            <div className="text-sm text-gray-500">In Progress</div>
-          </div>
-          <div className="p-5 text-center">
-            <div className="text-2xl font-bold text-green-600">{statsData.completed}</div>
-            <div className="text-sm text-gray-500">Completed</div>
-          </div>
-          <div className="p-5 text-center">
-            <div className="text-2xl font-bold text-green-700">{statsData.closed}</div>
-            <div className="text-sm text-gray-500">Closed</div>
-          </div>
-          <div className="p-5 text-center">
-            <div className="text-2xl font-bold text-red-600">{statsData.overdue}</div>
-            <div className="text-sm text-gray-500">Overdue</div>
-          </div>
-        </div>
-      </div>
 
-      {/* Filters and Search */}
-      <div className="mb-6 flex flex-col sm:flex-row justify-between items-center">
-        <div className="flex flex-wrap space-x-2 mb-4 sm:mb-0">
-          <button
-            onClick={() => setActiveFilter('all')}
-            className={`px-3 py-2 rounded-md text-sm font-medium mb-2 sm:mb-0 ${
-              activeFilter === 'all'
-                ? 'bg-blue-100 text-blue-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setActiveFilter('in-progress')}
-            className={`px-3 py-2 rounded-md text-sm font-medium mb-2 sm:mb-0 ${
-              activeFilter === 'in-progress'
-                ? 'bg-blue-100 text-blue-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            In Progress
-          </button>
-          <button
-            onClick={() => setActiveFilter('completed')}
-            className={`px-3 py-2 rounded-md text-sm font-medium mb-2 sm:mb-0 ${
-              activeFilter === 'completed'
-                ? 'bg-green-100 text-green-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Completed
-          </button>
-          <button
-            onClick={() => setActiveFilter('closed')}
-            className={`px-3 py-2 rounded-md text-sm font-medium mb-2 sm:mb-0 ${
-              activeFilter === 'closed'
-                ? 'bg-green-100 text-green-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Closed
-          </button>
-          <button
-            onClick={() => setActiveFilter('overdue')}
-            className={`px-3 py-2 rounded-md text-sm font-medium mb-2 sm:mb-0 ${
-              activeFilter === 'overdue'
-                ? 'bg-red-100 text-red-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Overdue
-          </button>
-        </div>
-        
-        <div className="relative w-full sm:w-64">
-          <input
-            type="text"
-            placeholder="Search projects..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      {/* Projects List */}
-      {filteredProjects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {filteredProjects.map(project => (
-            <div 
-              key={project._id} 
-              className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-              onClick={() => handleProjectClick(project)}
-            >
-              <div className="relative h-48 bg-gray-200">
-                {project.thumbnailUrl ? (
-                  <img 
-                    src={project.thumbnailUrl} 
-                    alt={project.title} 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                )}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                  <div className="flex justify-between items-center">
-                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${getStatusStyles(project.status)}`}>
-                      {project.status}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-300">
-                  <div 
-                    className={`h-full ${
-                      project.completionPercentage === 100 ? 'bg-green-500' : 
-                      project.completionPercentage >= 60 ? 'bg-blue-500' : 
-                      project.completionPercentage >= 30 ? 'bg-yellow-500' : 
-                      'bg-red-500'
-                    }`} 
-                    style={{ width: `${project.completionPercentage}%` }}
-                  ></div>
-                </div>
+          {/* Enhanced Filters and Search */}
+          <div className="mb-8 bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-xl">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'all', label: 'All', color: 'blue' },
+                  { key: 'in-progress', label: 'In Progress', color: 'blue' },
+                  { key: 'completed', label: 'Completed', color: 'green' },
+                  { key: 'closed', label: 'Closed', color: 'green' },
+                  { key: 'overdue', label: 'Overdue', color: 'red' }
+                ].map(filter => (
+                  <button
+                    key={filter.key}
+                    onClick={() => setActiveFilter(filter.key)}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 border backdrop-blur-sm ${
+                      activeFilter === filter.key
+                        ? `bg-${filter.color}-500/20 text-${filter.color}-300 border-${filter.color}-500/30 shadow-lg`
+                        : 'text-gray-300 hover:bg-white/10 border-white/20 hover:border-white/30'
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
               </div>
               
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">{project.title}</h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{project.description}</p>
-                
-                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                  <div>
-                    <p className="text-gray-500">Creator:</p>
-                    <p className="font-medium truncate">
-                      {project.userCreated || (project.creatorEmail ? (project.creatorEmail.includes('@') ? project.creatorEmail.split('@')[0] : project.creatorEmail) : 'Unknown')}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Deadline:</p>
-                    <p className={`font-medium ${getDeadlineStyles(project.daysRemaining, project.status)}`}>
-                      {formatDate(project.deadline)}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {project.tags && project.tags.slice(0, 3).map((tag, index) => (
-                    <span 
-                      key={index} 
-                      className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                  {project.tags && project.tags.length > 3 && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-500">
-                      +{project.tags.length - 3}
-                    </span>
-                  )}
+              <div className="relative w-full sm:w-80">
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm transition-all duration-300"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                  </svg>
                 </div>
               </div>
-              
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-                <div className="flex justify-between items-center text-sm">
-                  <div className="flex items-center text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Created {formatDate(project.createdAt)}</span>
-                  </div>
-                  <div className={getDeadlineStyles(project.daysRemaining, project.status)}>
-                    {project.status === 'Completed' ? (
-                      <span className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                        Completed
-                      </span>
-                    ) : project.status === 'Closed' ? (
-                      <span className="flex items-center text-green-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        Closed
-                      </span>
-                    ) : project.isOverdue ? (
-                      <span className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
-                        </svg>
-                        {Math.abs(project.daysRemaining)} days overdue
-                      </span>
+            </div>
+          </div>
+
+          {/* Enhanced Projects List */}
+          {filteredProjects.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              {filteredProjects.map(project => (
+                <div 
+                  key={project._id} 
+                  className="group bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden border border-white/20 hover:border-white/30 transition-all duration-500 cursor-pointer transform hover:scale-[1.02] hover:shadow-2xl shimmer"
+                  onClick={() => handleProjectClick(project)}
+                >
+                  <div className="relative h-48 bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+                    {project.thumbnailUrl ? (
+                      <img 
+                        src={project.thumbnailUrl} 
+                        alt={project.title} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
                     ) : (
-                      <span>
-                        {project.daysRemaining === 0 ? 'Due today' : `${project.daysRemaining} days left`}
-                      </span>
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-blue-400 group-hover:text-blue-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
                     )}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                      <div className="flex justify-between items-center">
+                        <span className={`px-3 py-1 rounded-xl text-xs font-medium backdrop-blur-sm border ${
+                          project.status === 'Completed' || project.status === 'Closed' 
+                            ? 'bg-green-500/20 text-green-300 border-green-500/30'
+                            : project.status === 'Draft'
+                            ? 'bg-gray-500/20 text-gray-300 border-gray-500/30'
+                            : project.status.includes('Almost there')
+                            ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                            : project.status.includes('Good progress')
+                            ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
+                            : project.status.includes('Just started')
+                            ? 'bg-red-500/20 text-red-300 border-red-500/30'
+                            : 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                        }`}>
+                          {project.status}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                      <div 
+                        className={`h-full transition-all duration-500 ${
+                          project.completionPercentage === 100 ? 'bg-green-500' : 
+                          project.completionPercentage >= 60 ? 'bg-blue-500' : 
+                          project.completionPercentage >= 30 ? 'bg-yellow-500' : 
+                          'bg-red-500'
+                        }`} 
+                        style={{ width: `${project.completionPercentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-blue-300 transition-colors">{project.title}</h3>
+                    <p className="text-gray-300 text-sm mb-4 line-clamp-2">{project.description}</p>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                      <div>
+                        <p className="text-gray-400">Creator:</p>
+                        <p className="font-medium text-gray-200 truncate">
+                          {project.userCreated || (project.creatorEmail ? (project.creatorEmail.includes('@') ? project.creatorEmail.split('@')[0] : project.creatorEmail) : 'Unknown')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Deadline:</p>
+                        <p className={`font-medium ${
+                          project.status === 'Completed' || project.status === 'Closed' 
+                            ? 'text-green-400'
+                            : project.daysRemaining < 10 
+                            ? 'text-red-400'
+                            : project.daysRemaining <= 30
+                            ? 'text-orange-400'
+                            : 'text-gray-300'
+                        }`}>
+                          {formatDate(project.deadline)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {project.tags && project.tags.slice(0, 3).map((tag, index) => (
+                        <span 
+                          key={index} 
+                          className="inline-flex items-center px-2 py-1 rounded-xl text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30 backdrop-blur-sm"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {project.tags && project.tags.length > 3 && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-xl text-xs font-medium bg-gray-500/20 text-gray-400 border border-gray-500/30 backdrop-blur-sm">
+                          +{project.tags.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="px-6 py-4 bg-white/5 border-t border-white/10 backdrop-blur-sm">
+                    <div className="flex justify-between items-center text-sm">
+                      <div className="flex items-center text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Created {formatDate(project.createdAt)}</span>
+                      </div>
+                      <div className={`font-medium ${
+                        project.status === 'Completed' 
+                          ? 'text-green-400'
+                          : project.status === 'Closed' 
+                          ? 'text-green-400'
+                          : project.isOverdue 
+                          ? 'text-red-400'
+                          : 'text-gray-300'
+                      }`}>
+                        {project.status === 'Completed' ? (
+                          <span className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                            Completed
+                          </span>
+                        ) : project.status === 'Closed' ? (
+                          <span className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            Closed
+                          </span>
+                        ) : project.isOverdue ? (
+                          <span className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
+                            </svg>
+                            {Math.abs(project.daysRemaining)} days overdue
+                          </span>
+                        ) : (
+                          <span>
+                            {project.daysRemaining === 0 ? 'Due today' : `${project.daysRemaining} days left`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl p-12 flex flex-col items-center justify-center text-center border border-white/20">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 mb-6 animate-pulse-glow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="text-xl font-semibold text-white mb-2">No projects found</h3>
+              <p className="text-gray-400 mb-8 max-w-md">
+                {searchQuery || activeFilter !== 'all' ? 
+                  'Try adjusting your search or filters to find what you\'re looking for.' : 
+                  'You don\'t have any projects assigned to you yet. Check back later or contact your team lead.'}
+              </p>
+              <div className="flex gap-3">
+                {(searchQuery || activeFilter !== 'all') && (
+                  <button 
+                    onClick={() => {
+                      setSearchQuery('');
+                      setActiveFilter('all');
+                    }}
+                    className="px-6 py-3 bg-blue-500/20 text-blue-300 rounded-xl border border-blue-500/30 hover:bg-blue-500/30 transition-all duration-300 backdrop-blur-sm"
+                  >
+                    Clear Filters
+                  </button>
+                )}
               </div>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md p-8 flex flex-col items-center justify-center text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <h3 className="text-lg font-medium text-gray-900 mb-1">No projects found</h3>
-          <p className="text-gray-500 mb-6">
-            {searchQuery || activeFilter !== 'all' ? 
-              'Try adjusting your search or filters to find what you\'re looking for.' : 
-              'You don\'t have any projects assigned to you yet.'}
-          </p>
-        </div>
-      )}
+          )}
 
       {/* Project Detail Modal */}
       {selectedProject && (
@@ -1705,69 +1859,9 @@ function EditorProjectsDisplay() {
         </div>
       )}
 
-      {/* YouTube Upload Modal */}
-      {youtubeUploadModalOpen && selectedProjectForYoutube && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Upload to YouTube - {selectedProjectForYoutube.title}
-              </h3>
-              <button
-                onClick={handleCloseYouTubeModal}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <YouTubeUpload 
-              project={selectedProjectForYoutube}
-              onUploadSuccess={handleYouTubeUploadSuccess}
-            />
-          </div>
         </div>
-      )}
-      
-      {/* YouTube Upload Modal */}
-      {youtubeUploadModalOpen && selectedProjectForYoutube && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">
-                Upload to YouTube - {selectedProjectForYoutube.title}
-              </h3>
-              <button
-                onClick={handleCloseYouTubeModal}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="p-6">
-              <YouTubeUpload 
-                project={selectedProjectForYoutube} 
-                onUploadSuccess={handleYouTubeUploadSuccess}
-              />
-            </div>
-            
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
-              <button
-                onClick={handleCloseYouTubeModal}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }
 

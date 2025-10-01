@@ -10,6 +10,21 @@ const supabase = require('../config/supabase');
  */
 async function uploadFileToSupabase(fileBuffer, fileName, bucket, mimeType) {
   try {
+    console.log(`🔄 Starting upload: ${fileName} to bucket: ${bucket}, size: ${fileBuffer.length} bytes, type: ${mimeType}`);
+    
+    // Ensure the bucket exists
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+    if (listError) {
+      console.error('❌ Error listing buckets:', listError);
+      return { success: false, error: `Cannot access storage: ${listError.message}` };
+    }
+    
+    const bucketExists = buckets.find(b => b.name === bucket);
+    if (!bucketExists) {
+      console.error(`❌ Bucket '${bucket}' does not exist`);
+      return { success: false, error: `Bucket '${bucket}' does not exist` };
+    }
+    
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(fileName, fileBuffer, {
@@ -18,25 +33,28 @@ async function uploadFileToSupabase(fileBuffer, fileName, bucket, mimeType) {
       });
 
     if (error) {
-      console.error('Supabase upload error:', error);
+      console.error('❌ Supabase upload error:', error);
+      console.error('❌ Upload details:', { bucket, fileName, mimeType, bufferSize: fileBuffer.length });
       return { success: false, error: error.message };
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data: urlData } = supabase.storage
       .from(bucket)
       .getPublicUrl(fileName);
+
+    console.log(`✅ Upload successful: ${fileName} -> ${urlData.publicUrl}`);
 
     return { 
       success: true, 
       data: { 
         path: data.path, 
-        publicUrl,
+        publicUrl: urlData.publicUrl,
         fileName 
       } 
     };
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('❌ Unexpected upload error:', error);
     return { success: false, error: error.message };
   }
 }
