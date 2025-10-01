@@ -14,6 +14,8 @@ function EditorProjectsDisplay() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('deadline'); // 'deadline', 'priority', 'status', 'created'
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc', 'desc'
   const [selectedProject, setSelectedProject] = useState(null);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [statsData, setStatsData] = useState({
@@ -22,9 +24,13 @@ function EditorProjectsDisplay() {
     completed: 0,
     closed: 0,
     overdue: 0,
-    unstarted: 0
+    unstarted: 0,
+    highPriority: 0,
+    mediumPriority: 0,
+    lowPriority: 0
   });
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isUpdatingPriority, setIsUpdatingPriority] = useState(false);
   const [statusUpdateMessage, setStatusUpdateMessage] = useState('');
 
   const [videoModalOpen, setVideoModalOpen] = useState(false);
@@ -67,12 +73,12 @@ function EditorProjectsDisplay() {
     }
   }, []);
 
-  // Apply filters when activeFilter or searchQuery changes
+  // Apply filters and sorting when dependencies change
   useEffect(() => {
     if (projects.length > 0) {
-      applyFilters();
+      applyFiltersAndSort();
     }
-  }, [projects, activeFilter, searchQuery]);
+  }, [projects, activeFilter, searchQuery, sortBy, sortOrder]);
 
   // Add this useEffect to close the dropdown when clicking outside
   useEffect(() => {
@@ -118,6 +124,44 @@ function EditorProjectsDisplay() {
     }
   }, [location, projects]);
 
+  // Sorting function
+  const sortProjects = (projectsToSort, sortBy, sortOrder) => {
+    return [...projectsToSort].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case 'priority':
+          aValue = a.priorityScore;
+          bValue = b.priorityScore;
+          break;
+        case 'deadline':
+          aValue = new Date(a.deadline);
+          bValue = new Date(b.deadline);
+          break;
+        case 'status':
+          aValue = a.completionPercentage;
+          bValue = b.completionPercentage;
+          break;
+        case 'created':
+          aValue = new Date(a.createdAt);
+          bValue = new Date(b.createdAt);
+          break;
+        case 'updated':
+          aValue = new Date(a.lastUpdated);
+          bValue = new Date(b.lastUpdated);
+          break;
+        default:
+          return 0;
+      }
+      
+      if (sortOrder === 'desc') {
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+      } else {
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+      }
+    });
+  };
+
   // Fetch projects assigned to this editor
   const fetchEditorProjects = async (editorEmail) => {
     setIsLoading(true);
@@ -142,7 +186,7 @@ function EditorProjectsDisplay() {
       
       const data = await response.json();
       
-      // Process projects data to calculate days remaining, etc.
+      // Process projects data to calculate days remaining, priority, etc.
       const processedProjects = data.projects.map(project => {
         const deadline = new Date(project.deadline);
         const today = new Date();
@@ -164,17 +208,38 @@ function EditorProjectsDisplay() {
             completionPercentage = parseInt(match[1], 10);
           }
         }
+
+        // Determine priority based on days remaining and status if not explicitly set
+        let priority = project.priority || 'medium';
+        if (!project.priority) {
+          if (isOverdue || diffDays <= 2) {
+            priority = 'high';
+          } else if (diffDays <= 7) {
+            priority = 'medium';
+          } else {
+            priority = 'low';
+          }
+        }
+
+        // Calculate priority score for sorting (higher = more urgent)
+        const priorityScore = priority === 'high' ? 3 : priority === 'medium' ? 2 : 1;
         
         return {
           ...project,
           daysRemaining: diffDays,
           isOverdue,
-          completionPercentage
+          completionPercentage,
+          priority,
+          priorityScore,
+          lastUpdated: project.lastUpdated || project.createdAt
         };
       });
-      
-      setProjects(processedProjects);
-      setFilteredProjects(processedProjects);
+
+      // Sort projects based on current sort criteria
+      const sortedProjects = sortProjects(processedProjects, sortBy, sortOrder);
+
+      setProjects(sortedProjects);
+      setFilteredProjects(sortedProjects);
       
       // Calculate stats for the dashboard
       const stats = {
@@ -188,7 +253,10 @@ function EditorProjectsDisplay() {
         closed: processedProjects.filter(p => p.status === 'Closed').length,
         completed: processedProjects.filter(p => p.status === 'Completed').length,
         overdue: processedProjects.filter(p => p.isOverdue).length,
-        unstarted: processedProjects.filter(p => p.status === 'Draft').length
+        unstarted: processedProjects.filter(p => p.status === 'Draft').length,
+        highPriority: processedProjects.filter(p => p.priority === 'high').length,
+        mediumPriority: processedProjects.filter(p => p.priority === 'medium').length,
+        lowPriority: processedProjects.filter(p => p.priority === 'low').length
       };
       
       setStatsData(stats);
@@ -201,8 +269,8 @@ function EditorProjectsDisplay() {
     }
   };
 
-  // Apply filters based on activeFilter and searchQuery
-  const applyFilters = () => {
+  // Apply filters and sorting based on activeFilter, searchQuery, and sort criteria
+  const applyFiltersAndSort = () => {
     let filtered = [...projects];
     
     // Filter by status
@@ -216,6 +284,12 @@ function EditorProjectsDisplay() {
       filtered = filtered.filter(project => project.isOverdue);
     } else if (activeFilter === 'unassigned') {
       filtered = filtered.filter(project => project.status === 'Unassigned');
+    } else if (activeFilter === 'high-priority') {
+      filtered = filtered.filter(project => project.priority === 'high');
+    } else if (activeFilter === 'medium-priority') {
+      filtered = filtered.filter(project => project.priority === 'medium');
+    } else if (activeFilter === 'low-priority') {
+      filtered = filtered.filter(project => project.priority === 'low');
     }
     
     // Filter by search query
@@ -228,12 +302,16 @@ function EditorProjectsDisplay() {
         const matchesCreator = 
           (project.creatorName ? project.creatorName.toLowerCase().includes(query) : false) || 
           (project.creatorEmail ? project.creatorEmail.toLowerCase().includes(query) : false);
+        const matchesPriority = project.priority.toLowerCase().includes(query);
         
-        return matchesTitle || matchesDescription || matchesTags || matchesCreator;
+        return matchesTitle || matchesDescription || matchesTags || matchesCreator || matchesPriority;
       });
     }
     
-    setFilteredProjects(filtered);
+    // Apply sorting
+    const sortedAndFiltered = sortProjects(filtered, sortBy, sortOrder);
+    
+    setFilteredProjects(sortedAndFiltered);
   };
 
   const applyFiltersToProjects = (projects, activeFilter, searchQuery) => {
@@ -309,6 +387,46 @@ function EditorProjectsDisplay() {
       return 'bg-blue-100 text-blue-800';
     }
     return 'bg-gray-100 text-gray-800';
+  };
+
+  // Get priority styling based on priority
+  const getPriorityStyles = (priority) => {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-500/20 text-red-300 border-red-500/30';
+      case 'medium':
+        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+      case 'low':
+        return 'bg-green-500/20 text-green-300 border-green-500/30';
+      default:
+        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+    }
+  };
+
+  // Get priority icon
+  const getPriorityIcon = (priority) => {
+    switch (priority) {
+      case 'high':
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 3l7 7-7 7-7-7 7-7z" clipRule="evenodd" />
+          </svg>
+        );
+      case 'medium':
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zM3 16a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clipRule="evenodd" />
+          </svg>
+        );
+      case 'low':
+        return (
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 17l-7-7 7-7 7 7-7 7z" clipRule="evenodd" />
+          </svg>
+        );
+      default:
+        return null;
+    }
   };
 
   // Get deadline styling
@@ -433,6 +551,74 @@ function EditorProjectsDisplay() {
       alert('Failed to update project status. Please try again.');
     } finally {
       setIsUpdatingStatus(false);
+    }
+  };
+
+  // Update project priority
+  const handleUpdatePriority = async (projectId, newPriority) => {
+    try {
+      setIsUpdatingPriority(true);
+      
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`http://localhost:4000/projectApi/project/${projectId}/priority`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          priority: newPriority
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update project priority');
+      }
+      
+      const result = await response.json();
+      
+      // Calculate new priority score
+      const priorityScore = newPriority === 'high' ? 3 : newPriority === 'medium' ? 2 : 1;
+      
+      // Update the selected project directly
+      const updatedProject = {
+        ...selectedProject,
+        priority: newPriority,
+        priorityScore: priorityScore
+      };
+      setSelectedProject(updatedProject);
+      
+      // Also update the project in the projects array
+      const updatedProjects = projects.map(project => 
+        project._id === projectId 
+          ? { 
+              ...project, 
+              priority: newPriority, 
+              priorityScore: priorityScore
+            }
+          : project
+      );
+      
+      setProjects(updatedProjects);
+      
+      // Re-apply filters and sorting to update filteredProjects
+      const filtered = applyFiltersToProjects(updatedProjects, activeFilter, searchQuery);
+      const sortedFiltered = sortProjects(filtered, sortBy, sortOrder);
+      setFilteredProjects(sortedFiltered);
+      
+      // Update stats
+      updateStatsData(updatedProjects);
+      
+      // Show success message
+      setStatusUpdateMessage(`Priority updated to: ${newPriority}`);
+      setTimeout(() => setStatusUpdateMessage(''), 3000);
+      
+    } catch (error) {
+      console.error('Error updating project priority:', error);
+      alert('Failed to update project priority. Please try again.');
+    } finally {
+      setIsUpdatingPriority(false);
     }
   };
 
@@ -945,31 +1131,46 @@ function EditorProjectsDisplay() {
               </div>
               
               {/* Enhanced Stats Dashboard */}
-              <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-white/10">
-                <div className="p-6 text-center group hover:bg-white/5 transition-all duration-300">
-                  <div className="text-3xl font-bold text-white group-hover:text-blue-300 transition-colors">{statsData.total}</div>
-                  <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Total Projects</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 divide-x divide-white/10">
+                <div className="p-4 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-2xl font-bold text-white group-hover:text-blue-300 transition-colors">{statsData.total}</div>
+                  <div className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">Total</div>
                   <div className="w-full h-1 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-full mt-2"></div>
                 </div>
-                <div className="p-6 text-center group hover:bg-white/5 transition-all duration-300">
-                  <div className="text-3xl font-bold text-blue-400 group-hover:text-blue-300 transition-colors">{statsData.inProgress}</div>
-                  <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">In Progress</div>
+                <div className="p-4 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-2xl font-bold text-blue-400 group-hover:text-blue-300 transition-colors">{statsData.inProgress}</div>
+                  <div className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">In Progress</div>
                   <div className="w-full h-1 bg-gradient-to-r from-blue-500/50 to-cyan-500/50 rounded-full mt-2"></div>
                 </div>
-                <div className="p-6 text-center group hover:bg-white/5 transition-all duration-300">
-                  <div className="text-3xl font-bold text-green-400 group-hover:text-green-300 transition-colors">{statsData.completed}</div>
-                  <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Completed</div>
+                <div className="p-4 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-2xl font-bold text-green-400 group-hover:text-green-300 transition-colors">{statsData.completed}</div>
+                  <div className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">Completed</div>
                   <div className="w-full h-1 bg-gradient-to-r from-green-500/50 to-emerald-500/50 rounded-full mt-2"></div>
                 </div>
-                <div className="p-6 text-center group hover:bg-white/5 transition-all duration-300">
-                  <div className="text-3xl font-bold text-green-500 group-hover:text-green-400 transition-colors">{statsData.closed}</div>
-                  <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Closed</div>
+                <div className="p-4 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-2xl font-bold text-green-500 group-hover:text-green-400 transition-colors">{statsData.closed}</div>
+                  <div className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">Closed</div>
                   <div className="w-full h-1 bg-gradient-to-r from-green-600/50 to-teal-500/50 rounded-full mt-2"></div>
                 </div>
-                <div className="p-6 text-center group hover:bg-white/5 transition-all duration-300">
-                  <div className="text-3xl font-bold text-red-400 group-hover:text-red-300 transition-colors">{statsData.overdue}</div>
-                  <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Overdue</div>
+                <div className="p-4 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-2xl font-bold text-red-400 group-hover:text-red-300 transition-colors">{statsData.overdue}</div>
+                  <div className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">Overdue</div>
                   <div className="w-full h-1 bg-gradient-to-r from-red-500/50 to-pink-500/50 rounded-full mt-2"></div>
+                </div>
+                <div className="p-4 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-2xl font-bold text-red-500 group-hover:text-red-400 transition-colors">{statsData.highPriority}</div>
+                  <div className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">High Priority</div>
+                  <div className="w-full h-1 bg-gradient-to-r from-red-600/50 to-red-500/50 rounded-full mt-2"></div>
+                </div>
+                <div className="p-4 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-2xl font-bold text-yellow-500 group-hover:text-yellow-400 transition-colors">{statsData.mediumPriority}</div>
+                  <div className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">Medium Priority</div>
+                  <div className="w-full h-1 bg-gradient-to-r from-yellow-600/50 to-yellow-500/50 rounded-full mt-2"></div>
+                </div>
+                <div className="p-4 text-center group hover:bg-white/5 transition-all duration-300">
+                  <div className="text-2xl font-bold text-green-600 group-hover:text-green-500 transition-colors">{statsData.lowPriority}</div>
+                  <div className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">Low Priority</div>
+                  <div className="w-full h-1 bg-gradient-to-r from-green-600/50 to-green-500/50 rounded-full mt-2"></div>
                 </div>
               </div>
             </div>
@@ -977,41 +1178,107 @@ function EditorProjectsDisplay() {
 
           {/* Enhanced Filters and Search */}
           <div className="mb-8 bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-xl">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { key: 'all', label: 'All', color: 'blue' },
-                  { key: 'in-progress', label: 'In Progress', color: 'blue' },
-                  { key: 'completed', label: 'Completed', color: 'green' },
-                  { key: 'closed', label: 'Closed', color: 'green' },
-                  { key: 'overdue', label: 'Overdue', color: 'red' }
-                ].map(filter => (
-                  <button
-                    key={filter.key}
-                    onClick={() => setActiveFilter(filter.key)}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 border backdrop-blur-sm ${
-                      activeFilter === filter.key
-                        ? `bg-${filter.color}-500/20 text-${filter.color}-300 border-${filter.color}-500/30 shadow-lg`
-                        : 'text-gray-300 hover:bg-white/10 border-white/20 hover:border-white/30'
-                    }`}
-                  >
-                    {filter.label}
-                  </button>
-                ))}
+            <div className="flex flex-col gap-6">
+              {/* Status Filters */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-300 mb-2">Filter by Status</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { key: 'all', label: 'All', color: 'blue' },
+                      { key: 'in-progress', label: 'In Progress', color: 'blue' },
+                      { key: 'completed', label: 'Completed', color: 'green' },
+                      { key: 'closed', label: 'Closed', color: 'green' },
+                      { key: 'overdue', label: 'Overdue', color: 'red' }
+                    ].map(filter => (
+                      <button
+                        key={filter.key}
+                        onClick={() => setActiveFilter(filter.key)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 border backdrop-blur-sm ${
+                          activeFilter === filter.key
+                            ? `bg-${filter.color}-500/20 text-${filter.color}-300 border-${filter.color}-500/30 shadow-lg`
+                            : 'text-gray-300 hover:bg-white/10 border-white/20 hover:border-white/30'
+                        }`}
+                      >
+                        {filter.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="relative w-full sm:w-80">
+                  <input
+                    type="text"
+                    placeholder="Search projects..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm transition-all duration-300"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
               </div>
-              
-              <div className="relative w-full sm:w-80">
-                <input
-                  type="text"
-                  placeholder="Search projects..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm transition-all duration-300"
-                />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                  </svg>
+
+              {/* Priority Filters and Sorting */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-300 mb-2">Filter by Priority</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { key: 'high-priority', label: 'High Priority', color: 'red' },
+                      { key: 'medium-priority', label: 'Medium Priority', color: 'yellow' },
+                      { key: 'low-priority', label: 'Low Priority', color: 'green' }
+                    ].map(filter => (
+                      <button
+                        key={filter.key}
+                        onClick={() => setActiveFilter(filter.key)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 border backdrop-blur-sm flex items-center gap-2 ${
+                          activeFilter === filter.key
+                            ? `bg-${filter.color}-500/20 text-${filter.color}-300 border-${filter.color}-500/30 shadow-lg`
+                            : 'text-gray-300 hover:bg-white/10 border-white/20 hover:border-white/30'
+                        }`}
+                      >
+                        {getPriorityIcon(filter.key.replace('-priority', ''))}
+                        {filter.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sort Controls */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-300 mb-2">Sort by</h3>
+                  <div className="flex gap-2">
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 backdrop-blur-sm"
+                    >
+                      <option value="priority" className="bg-gray-800">Priority</option>
+                      <option value="deadline" className="bg-gray-800">Deadline</option>
+                      <option value="status" className="bg-gray-800">Status</option>
+                      <option value="created" className="bg-gray-800">Created Date</option>
+                      <option value="updated" className="bg-gray-800">Last Updated</option>
+                    </select>
+                    <button
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                      className="px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-all duration-300 backdrop-blur-sm"
+                      title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+                    >
+                      {sortOrder === 'asc' ? (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1057,6 +1324,10 @@ function EditorProjectsDisplay() {
                         }`}>
                           {project.status}
                         </span>
+                        <span className={`px-2 py-1 rounded-lg text-xs font-medium backdrop-blur-sm border flex items-center gap-1 ${getPriorityStyles(project.priority)}`}>
+                          {getPriorityIcon(project.priority)}
+                          {project.priority?.toUpperCase() || 'MEDIUM'}
+                        </span>
                       </div>
                     </div>
                     
@@ -1101,7 +1372,14 @@ function EditorProjectsDisplay() {
                     </div>
                     
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {project.tags && project.tags.slice(0, 3).map((tag, index) => (
+                      {/* Priority badge */}
+                      <span className={`inline-flex items-center px-2 py-1 rounded-xl text-xs font-medium border backdrop-blur-sm gap-1 ${getPriorityStyles(project.priority || 'medium')}`}>
+                        {getPriorityIcon(project.priority || 'medium')}
+                        {(project.priority || 'medium').toUpperCase()}
+                      </span>
+                      
+                      {/* Tags */}
+                      {project.tags && project.tags.slice(0, 2).map((tag, index) => (
                         <span 
                           key={index} 
                           className="inline-flex items-center px-2 py-1 rounded-xl text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30 backdrop-blur-sm"
@@ -1109,9 +1387,9 @@ function EditorProjectsDisplay() {
                           {tag}
                         </span>
                       ))}
-                      {project.tags && project.tags.length > 3 && (
+                      {project.tags && project.tags.length > 2 && (
                         <span className="inline-flex items-center px-2 py-1 rounded-xl text-xs font-medium bg-gray-500/20 text-gray-400 border border-gray-500/30 backdrop-blur-sm">
-                          +{project.tags.length - 3}
+                          +{project.tags.length - 2}
                         </span>
                       )}
                     </div>
@@ -1520,6 +1798,31 @@ function EditorProjectsDisplay() {
                         <div className="bg-white/5 rounded-xl p-3 border border-white/10">
                           <dt className="text-sm font-medium text-gray-300 mb-1">Status:</dt>
                           <dd className="text-sm text-white">{selectedProject.status}</dd>
+                        </div>
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                          <dt className="text-sm font-medium text-gray-300 mb-1 flex items-center justify-between">
+                            <span>Priority:</span>
+                            {selectedProject.status !== 'Closed' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const priorities = ['low', 'medium', 'high'];
+                                  const currentIndex = priorities.indexOf(selectedProject.priority || 'medium');
+                                  const nextPriority = priorities[(currentIndex + 1) % priorities.length];
+                                  handleUpdatePriority(selectedProject._id, nextPriority);
+                                }}
+                                disabled={isUpdatingPriority}
+                                className="text-xs px-2 py-1 bg-blue-500/20 text-blue-300 rounded-lg border border-blue-400/30 hover:bg-blue-500/30 transition-all duration-200 disabled:opacity-50"
+                                title="Click to change priority"
+                              >
+                                {isUpdatingPriority ? '...' : 'Change'}
+                              </button>
+                            )}
+                          </dt>
+                          <dd className={`text-sm flex items-center gap-2 ${getPriorityStyles(selectedProject.priority || 'medium')} px-2 py-1 rounded-lg border inline-flex w-fit`}>
+                            {getPriorityIcon(selectedProject.priority || 'medium')}
+                            <span className="capitalize font-medium">{selectedProject.priority || 'medium'}</span>
+                          </dd>
                         </div>
                         <div className="bg-white/5 rounded-xl p-3 border border-white/10">
                           <dt className="text-sm font-medium text-gray-300 mb-1">Created:</dt>

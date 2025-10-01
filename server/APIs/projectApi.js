@@ -347,6 +347,52 @@ router.put("/project/:id/status", authMiddleware, async (req, res, next) => {
   }
 });
 
+// Update project priority
+router.put("/project/:id/priority", authMiddleware, async (req, res, next) => {
+  try {
+    const projectId = req.params.id;
+    const { priority } = req.body;
+    
+    // Validate priority value
+    const validPriorities = ['low', 'medium', 'high'];
+    if (!priority || !validPriorities.includes(priority)) {
+      return res.status(400).json({ 
+        message: "Priority is required and must be one of: low, medium, high" 
+      });
+    }
+
+    const db = req.app.get("neosync");
+    const projectsCollection = db.collection("projectsCollection");
+    const ObjectId = require("mongodb").ObjectId;
+
+    const updateData = {
+      priority,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const result = await projectsCollection.updateOne(
+      { _id: new ObjectId(projectId) },
+      { $set: updateData }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    const updatedProject = await projectsCollection.findOne({
+      _id: new ObjectId(projectId),
+    });
+
+    res.status(200).json({
+      message: "Project priority updated successfully",
+      project: updatedProject,
+    });
+  } catch (error) {
+    console.error("Error updating project priority:", error);
+    next(error);
+  }
+});
+
 router.delete("/project/:id", authMiddleware, async (req, res, next) => {
   try {
     const db = req.app.get("neosync");
