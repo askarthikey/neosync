@@ -7,13 +7,72 @@ const ProjectChat = ({ project, currentUser, isCreator = false }) => {
   const [newMessage, setNewMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [chatReady, setChatReady] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const chatContainerRef = useRef(null);
 
   const currentUserName = currentUser?.name || currentUser?.email?.split('@')[0] || 'Anonymous';
 
-  // Join project room when component mounts
+  // Load chat messages from database (background loading)
+  const loadMessagesInBackground = async (projectId) => {
+    if (!projectId) return;
+    
+    setIsLoadingHistory(true);
+    try {
+      const token = localStorage.getItem('token');
+      // Load only recent messages (last 30) for faster initial load
+      const response = await fetch(`http://localhost:4000/chatApi/project/${projectId}/messages?limit=30&offset=0`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Only update if we don't have conflicting real-time messages
+        setMessages(prevMessages => {
+          const newMessages = data.messages || [];
+          // Merge with existing real-time messages, avoiding duplicates
+          const mergedMessages = [...newMessages];
+          
+          // Add any real-time messages that aren't in the loaded history
+          prevMessages.forEach(msg => {
+            if (!newMessages.some(newMsg => newMsg.id === msg.id)) {
+              mergedMessages.push(msg);
+            }
+          });
+          
+          // Sort by timestamp
+          return mergedMessages.sort((a, b) => 
+            new Date(a.created_at || a.timestamp) - new Date(b.created_at || b.timestamp)
+          );
+        });
+      } else {
+        console.error('Failed to load chat messages');
+      }
+    } catch (error) {
+      console.error('Error loading chat messages:', error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  // Initialize chat immediately when project changes
+  useEffect(() => {
+    if (project?._id) {
+      // Mark chat as ready immediately
+      setChatReady(true);
+      // Load messages immediately without delay
+      loadMessagesInBackground(project._id);
+    } else {
+      setChatReady(false);
+    }
+  }, [project?._id]);
+
+  // Join project room when component mounts (immediate for real-time messaging)
   useEffect(() => {
     if (project?._id && isConnected) {
       joinProject(project._id);
@@ -27,7 +86,12 @@ const ProjectChat = ({ project, currentUser, isCreator = false }) => {
   // Set up message listeners
   useEffect(() => {
     const handleMessage = (messageData) => {
-      setMessages(prev => [...prev, messageData]);
+      // Check if message already exists to avoid duplicates
+      setMessages(prev => {
+        const exists = prev.some(msg => msg.id === messageData.id);
+        if (exists) return prev;
+        return [...prev, messageData];
+      });
     };
 
     const handleTyping = ({ userName, typing }) => {
@@ -58,7 +122,7 @@ const ProjectChat = ({ project, currentUser, isCreator = false }) => {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (newMessage.trim() && project?._id) {
+    if (newMessage.trim() && project?._id && chatReady) {
       sendMessage(project._id, newMessage, currentUserName, 'text');
       setNewMessage('');
       handleStopTyping();
@@ -125,7 +189,13 @@ const ProjectChat = ({ project, currentUser, isCreator = false }) => {
   };
 
   const formatTime = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
+    if (!timestamp) return '';
+    
+    // Handle both timestamp formats (created_at from DB and timestamp from socket)
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) return '';
+    
+    return date.toLocaleTimeString([], { 
       hour: '2-digit', 
       minute: '2-digit' 
     });
@@ -161,24 +231,35 @@ const ProjectChat = ({ project, currentUser, isCreator = false }) => {
         className="flex-1 overflow-y-auto p-3 space-y-2 max-h-80"
         style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.3) transparent' }}
       >
-        {messages.length === 0 ? (
+        {/* Background loading indicator */}
+        {isLoadingHistory && messages.length === 0 && (
+          <div className="text-center py-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-400/30 rounded-lg">
+              <div className="animate-spin h-3 w-3 border border-blue-400/50 border-t-blue-400 rounded-full"></div>
+              <span className="text-blue-300 text-xs">Loading chat history...</span>
+            </div>
+          </div>
+        )}
+        
+        {!isLoadingHistory && messages.length === 0 ? (
           <div className="text-center py-4">
             <svg className="w-8 h-8 text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            <p className="text-gray-400 text-sm">No messages yet. Start the conversation!</p>
+            <p className="text-gray-400 text-sm">Ready to chat! Send your first message.</p>
           </div>
         ) : (
-          messages.map((msg) => (
-            <div 
-              key={msg.id} 
-              className={`flex ${msg.sender === currentUserName ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`max-w-xs lg:max-w-sm px-3 py-2 rounded-xl backdrop-blur-sm border ${
-                msg.sender === currentUserName 
-                  ? 'bg-blue-600/20 border-blue-500/30 text-blue-100' 
-                  : getMessageStyles(msg.messageType)
-              }`}>
+          <>
+            {messages.map((msg) => (
+              <div 
+                key={msg.id} 
+                className={`flex ${msg.sender === currentUserName ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`max-w-xs lg:max-w-sm px-3 py-2 rounded-xl backdrop-blur-sm border ${
+                  msg.sender === currentUserName 
+                    ? 'bg-blue-600/20 border-blue-500/30 text-blue-100' 
+                    : getMessageStyles(msg.messageType)
+                }`}>
                 {/* System message styling */}
                 {isSystemMessage(msg.messageType) ? (
                   <div className="flex items-center gap-2">
@@ -186,7 +267,7 @@ const ProjectChat = ({ project, currentUser, isCreator = false }) => {
                     <div className="flex-1">
                       <p className="text-sm font-medium">{msg.message}</p>
                       <p className="text-xs opacity-70 mt-1">
-                        by {msg.sender} • {formatTime(msg.timestamp)}
+                        by {msg.sender} • {formatTime(msg.timestamp || msg.created_at)}
                       </p>
                     </div>
                   </div>
@@ -197,13 +278,14 @@ const ProjectChat = ({ project, currentUser, isCreator = false }) => {
                     )}
                     <p className="text-sm leading-relaxed">{msg.message}</p>
                     <p className="text-xs opacity-70 mt-1 text-right">
-                      {formatTime(msg.timestamp)}
+                      {formatTime(msg.timestamp || msg.created_at)}
                     </p>
                   </div>
                 )}
               </div>
             </div>
-          ))
+          ))}
+          </>
         )}
         
         {/* Typing indicator */}
@@ -235,13 +317,13 @@ const ProjectChat = ({ project, currentUser, isCreator = false }) => {
             value={newMessage}
             onChange={handleTyping}
             onBlur={handleStopTyping}
-            placeholder={isConnected ? "Type a message..." : "Connecting..."}
-            disabled={!isConnected}
+            placeholder={isConnected && chatReady ? "Type a message..." : isConnected ? "Chat loading..." : "Connecting..."}
+            disabled={!isConnected || !chatReady}
             className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <button
             type="submit"
-            disabled={!newMessage.trim() || !isConnected}
+            disabled={!newMessage.trim() || !isConnected || !chatReady}
             className="px-4 py-2 bg-purple-600/80 hover:bg-purple-600 text-white rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border border-purple-500/30 hover:border-purple-500/50 shadow-lg"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

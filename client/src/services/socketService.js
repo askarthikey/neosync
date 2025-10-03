@@ -9,23 +9,42 @@ class SocketService {
   connect() {
     if (!this.socket) {
       this.socket = io('http://localhost:4000', {
+        // Performance optimizations
+        transports: ['websocket', 'polling'], // Prefer WebSocket
+        upgrade: true,
         autoConnect: true,
+        forceNew: false,
+        
+        // Connection reliability
         reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionAttempts: 5,
-        maxReconnectionAttempts: 5
+        reconnectionDelay: 500, // Faster reconnection
+        reconnectionDelayMax: 2000,
+        reconnectionAttempts: 3, // Reduced for faster failure detection
+        maxReconnectionAttempts: 3,
+        
+        // Timeout optimizations
+        timeout: 10000, // 10 seconds
+        
+        // Compression
+        compression: true,
+        
+        // Reduce overhead
+        rememberUpgrade: true
       });
 
       this.socket.on('connect', () => {
-        console.log('Connected to server:', this.socket.id);
+        // Connected - logging removed for performance
       });
 
       this.socket.on('disconnect', () => {
-        console.log('Disconnected from server');
+        // Disconnected - logging removed for performance
       });
 
       this.socket.on('connect_error', (error) => {
-        console.error('Connection error:', error);
+        // Only log critical errors
+        if (error.type === 'TransportError') {
+          console.error('Transport error - check server connection');
+        }
       });
     }
     return this.socket;
@@ -48,7 +67,6 @@ class SocketService {
       
       this.currentProjectId = projectId;
       this.socket.emit('join-project', projectId);
-      console.log(`Joined project room: ${projectId}`);
     }
   }
 
@@ -58,7 +76,6 @@ class SocketService {
       if (this.currentProjectId === projectId) {
         this.currentProjectId = null;
       }
-      console.log(`Left project room: ${projectId}`);
     }
   }
 

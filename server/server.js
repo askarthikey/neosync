@@ -12,6 +12,20 @@ const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173", // Vite dev server
     methods: ["GET", "POST"]
+  },
+  // Performance optimizations
+  transports: ['websocket', 'polling'], // Prefer WebSocket over polling
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  upgradeTimeout: 30000,
+  maxHttpBufferSize: 1e6, // 1MB buffer
+  // Compression for better performance
+  compression: true,
+  // Connection state recovery
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+    skipMiddlewares: true,
   }
 });
 
@@ -23,36 +37,50 @@ app.use(uploadMiddleware);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
   // Join a project room for real-time communication
   socket.on('join-project', (projectId) => {
     socket.join(`project-${projectId}`);
-    console.log(`User ${socket.id} joined project room: project-${projectId}`);
   });
 
   // Leave a project room
   socket.on('leave-project', (projectId) => {
     socket.leave(`project-${projectId}`);
-    console.log(`User ${socket.id} left project room: project-${projectId}`);
   });
 
   // Handle chat messages
-  socket.on('send-message', (data) => {
+  socket.on('send-message', async (data) => {
     const { projectId, message, sender, timestamp, messageType } = data;
     
-    // Broadcast the message to all users in the project room
+    // Generate message data immediately
+    const messageData = {
+      project_id: projectId,
+      message: message,
+      sender: sender,
+      message_type: messageType || 'text',
+      created_at: new Date(timestamp || Date.now()),
+      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    };
+
+    // Broadcast immediately for instant UX
     io.to(`project-${projectId}`).emit('receive-message', {
-      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      projectId,
-      message,
-      sender,
-      timestamp,
-      messageType, // 'text', 'status-update', 'priority-update', etc.
+      ...messageData,
       socketId: socket.id
     });
-    
-    console.log(`Message sent to project-${projectId}:`, { message, sender, messageType });
+
+    // Save to database asynchronously without blocking
+    setImmediate(async () => {
+      try {
+        // Use existing connection pool from the main app
+        const neosync = app.get('neosync');
+        if (neosync) {
+          const collection = neosync.collection('chat_messages');
+          await collection.insertOne(messageData);
+        }
+      } catch (error) {
+        console.error('Background message save error:', error);
+        // Message was already broadcasted, so user experience isn't affected
+      }
+    });
   });
 
   // Handle typing indicators
@@ -81,7 +109,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+    // Silent disconnect - reduce logging overhead
   });
 });
 
@@ -90,9 +118,22 @@ app.set('io', io);
 
 mongoClient
   .connect(process.env.DB_URL)
-  .then((client) => {
+  .then(async (client) => {
     const neosync = client.db("neosync");
     const usersCollection = neosync.collection("usersCollection");
+    
+    // Create indexes for chat performance
+    const chatCollection = neosync.collection("chat_messages");
+    try {
+      // Index on project_id for faster chat queries
+      await chatCollection.createIndex({ project_id: 1 });
+      // Compound index for project_id and timestamp for efficient sorting
+      await chatCollection.createIndex({ project_id: 1, created_at: -1 });
+      console.log("Chat indexes created successfully");
+    } catch (indexError) {
+      console.log("Chat indexes may already exist:", indexError.message);
+    }
+    
     app.set("neosync", neosync);
     app.set("usersCollection", usersCollection);
     console.log("DB Connection Successful");
@@ -104,12 +145,14 @@ const projectApp = require("./APIs/projectApi");
 const notificationApi = require("./APIs/notificationApi");
 const reviewApi = require("./APIs/reviewApi");
 const youtubeApi = require("./APIs/youtubeApi");
+const chatApi = require("./APIs/chatApi");
 
 app.use("/userApi", userApp);
 app.use("/projectApi", projectApp);
 app.use("/notificationApi", notificationApi);
 app.use("/reviewApi", reviewApi);
 app.use("/youtubeApi", youtubeApi);
+app.use("/chatApi", chatApi);
 
 app.use((err, req, res, next) => {
   res.send({ message: "error", payload: err.message });
