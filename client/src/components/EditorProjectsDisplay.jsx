@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import YouTubeUpload from './YouTubeUpload';
 import ProjectChat from './ProjectChat';
 import { useSocket } from '../context/SocketContext';
+import { apiEndpoints } from '../utils/api';
 
 function EditorProjectsDisplay() {
   const location = useLocation();
@@ -177,7 +178,7 @@ function EditorProjectsDisplay() {
       }
       
       // Use the existing endpoint from your API
-      const response = await fetch(`http://localhost:4000/projectApi/editor-projects?email=${encodeURIComponent(editorEmail)}`, {
+      const response = await fetch(apiEndpoints.project.editorProjects(editorEmail), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -498,7 +499,7 @@ function EditorProjectsDisplay() {
         }
       }
       
-      const response = await fetch(`http://localhost:4000/projectApi/project/${projectId}/status`, {
+      const response = await fetch(apiEndpoints.project.updateStatus(projectId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -572,7 +573,7 @@ function EditorProjectsDisplay() {
       
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:4000/projectApi/project/${projectId}/priority`, {
+      const response = await fetch(apiEndpoints.project.updatePriority(projectId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -738,7 +739,7 @@ function EditorProjectsDisplay() {
       });
       
       // Open and send the request with Authorization header
-      xhr.open('POST', `http://localhost:4000/projectApi/add-video-response/${selectedProject._id}`);
+      xhr.open('POST', apiEndpoints.project.addVideoResponse(selectedProject._id));
       xhr.setRequestHeader('Authorization', `Bearer ${token}`);
       xhr.send(formData);
       
@@ -770,7 +771,7 @@ function EditorProjectsDisplay() {
         throw new Error('Authentication token not found');
       }
       
-      const response = await fetch(`http://localhost:4000/projectApi/project-responses/${projectId}`, {
+      const response = await fetch(apiEndpoints.project.getResponses(projectId), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -804,7 +805,7 @@ function EditorProjectsDisplay() {
         throw new Error('Authentication token not found');
       }
       
-      const response = await fetch(`http://localhost:4000/projectApi/project-reviews/${projectId}`, {
+      const response = await fetch(apiEndpoints.project.getReviews(projectId), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -1994,7 +1995,7 @@ function EditorProjectsDisplay() {
                       </div>
                     ) : videoResponses[activeVideoResponse]?.videoUrl ? (
                       <video 
-                        src={`http://localhost:4000${videoResponses[activeVideoResponse].videoUrl}`} 
+                        src={apiEndpoints.file.video(videoResponses[activeVideoResponse].videoUrl)} 
                         controls
                         className="w-full h-full object-contain"
                       />

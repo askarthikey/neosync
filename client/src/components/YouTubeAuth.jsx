@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiEndpoints } from '../utils/api';
 
 const YouTubeAuth = ({ user }) => {
   const [youtubeStatus, setYoutubeStatus] = useState({
@@ -15,7 +16,7 @@ const YouTubeAuth = ({ user }) => {
   const checkYouTubeStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:4000/youtubeApi/youtube/status', {
+      const response = await fetch(apiEndpoints.youtube.status(), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -41,7 +42,7 @@ const YouTubeAuth = ({ user }) => {
       setAuthLoading(true);
       const token = localStorage.getItem('token');
       
-      const response = await fetch('http://localhost:4000/youtubeApi/auth/youtube/init', {
+      const response = await fetch(apiEndpoints.youtube.init(), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -74,7 +75,7 @@ const YouTubeAuth = ({ user }) => {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch('http://localhost:4000/youtubeApi/youtube/disconnect', {
+      const response = await fetch(apiEndpoints.youtube.disconnect(), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

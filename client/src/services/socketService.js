@@ -8,7 +8,7 @@ class SocketService {
 
   connect() {
     if (!this.socket) {
-      this.socket = io('http://localhost:4000', {
+      this.socket = io(import.meta.env.VITE_SERVER_URL || 'http://localhost:4000', {
         // Performance optimizations
         transports: ['websocket', 'polling'], // Prefer WebSocket
         upgrade: true,

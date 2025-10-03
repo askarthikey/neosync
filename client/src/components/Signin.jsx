@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { apiEndpoints } from '../utils/api';
 
 function Signin() {
   const [formData, setFormData] = useState({
@@ -43,7 +44,7 @@ function Signin() {
       try {
         setIsLoading(true);
         setMessage(null);
-        const response = await fetch("http://localhost:4000/userApi/login", {
+        const response = await fetch(apiEndpoints.user.login(), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

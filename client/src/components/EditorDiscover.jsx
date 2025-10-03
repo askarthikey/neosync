@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationContext';
+import { apiEndpoints } from '../utils/api';
 
 function EditorDiscover() {
   const navigate = useNavigate();
@@ -79,7 +80,7 @@ function EditorDiscover() {
         throw new Error('Authentication token not found');
       }
       
-      const response = await fetch('http://localhost:4000/projectApi/unassigned-projects', {
+      const response = await fetch(apiEndpoints.project.unassignedProjects(), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -135,7 +136,7 @@ function EditorDiscover() {
       }
       
       try {
-        const response = await fetch('http://localhost:4000/projectApi/access-requests/editor', {
+        const response = await fetch(apiEndpoints.project.accessRequests.editor(), {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -283,7 +284,7 @@ function EditorDiscover() {
       
       console.log('Sending request payload:', requestPayload);
       
-      const response = await fetch(`http://localhost:4000/projectApi/project/${projectId}/request-access`, {
+      const response = await fetch(apiEndpoints.project.requestAccess(projectId), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

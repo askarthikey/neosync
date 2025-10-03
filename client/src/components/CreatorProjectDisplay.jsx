@@ -3,6 +3,7 @@ import { useNotifications } from '../context/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import ProjectChat from './ProjectChat';
 import { useSocket } from '../context/SocketContext';
+import { apiEndpoints } from '../utils/api';
 
 function CreatorProjectDisplay() {
   const { showToast } = useNotifications();
@@ -75,7 +76,7 @@ function CreatorProjectDisplay() {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:4000/projectApi/project-responses/${projectId}`, {
+      const response = await fetch(apiEndpoints.project.getResponses(projectId), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -107,7 +108,7 @@ function CreatorProjectDisplay() {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:4000/projectApi/project-reviews/${projectId}`, {
+      const response = await fetch(apiEndpoints.project.getReviews(projectId), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -682,7 +683,7 @@ function CreatorProjectDisplay() {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/projectApi/user-projects?username=${username}`, {
+      const response = await fetch(apiEndpoints.project.userProjects(username), {
         headers: {
           'Authorization': `Bearer ${token}`
         }

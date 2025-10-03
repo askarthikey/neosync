@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { apiEndpoints } from '../utils/api';
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -63,7 +64,7 @@ function Signup() {
           userType: formData.userType,
           password: formData.password,
         };
-        const response = await fetch("http://localhost:4000/userApi/user", {
+        const response = await fetch(apiEndpoints.user.create(), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

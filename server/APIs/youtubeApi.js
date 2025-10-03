@@ -55,7 +55,7 @@ router.post('/auth/youtube/init', authMiddleware, async (req, res) => {
  * Handle YouTube OAuth callback
  */
 router.get('/auth/youtube/callback', async (req, res) => {
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
   
   try {
     const { code, state, error, error_description } = req.query;

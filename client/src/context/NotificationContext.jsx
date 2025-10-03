@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
+import { apiEndpoints } from '../utils/api';
 
 const NotificationContext = createContext();
 
@@ -41,7 +42,7 @@ export function NotificationProvider({ children }) {
       const token = localStorage.getItem("token");
       if (!token) return;
       const response = await fetch(
-        "http://localhost:4000/projectApi/access-requests/editor",
+        apiEndpoints.project.accessRequests.editor(),
         {
           headers: {
             Authorization: `Bearer ${token}`,

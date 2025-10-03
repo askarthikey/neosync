@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
+import { apiEndpoints } from '../utils/api';
 
 const ProjectChat = ({ project, currentUser, isCreator = false }) => {
   const { sendMessage, onMessage, offMessage, onTyping, offTyping, startTyping, stopTyping, isConnected, joinProject, leaveProject } = useSocket();
@@ -23,7 +24,7 @@ const ProjectChat = ({ project, currentUser, isCreator = false }) => {
     try {
       const token = localStorage.getItem('token');
       // Load only recent messages (last 30) for faster initial load
-      const response = await fetch(`http://localhost:4000/chatApi/project/${projectId}/messages?limit=30&offset=0`, {
+      const response = await fetch(apiEndpoints.chat.getMessages(projectId, 30, 0), {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

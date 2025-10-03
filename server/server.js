@@ -10,7 +10,7 @@ const app = exp();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Vite dev server
+    origin: process.env.CLIENT_URL || "http://localhost:5173", // Use environment variable
     methods: ["GET", "POST"]
   },
   // Performance optimizations

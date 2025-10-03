@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import YouTubeAuth from "./YouTubeAuth";
+import { apiEndpoints } from '../utils/api';
 function UserProfile() {
   const [user, setUser] = useState(null);
   const [createdProjects, setCreatedProjects] = useState([]);
@@ -52,7 +53,7 @@ function UserProfile() {
     try {
       const token = localStorage.getItem("token");
       const profileResponse = await fetch(
-        `http://localhost:4000/userApi/user/${username || currentUser.username}`,
+        apiEndpoints.user.getByUsername(username || currentUser.username),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -65,7 +66,7 @@ function UserProfile() {
       const userData = await profileResponse.json();
       setUser(userData.user);
       const createdProjectsResponse = await fetch(
-        `http://localhost:4000/projectApi/projects/creator/${userData.user.username}`,
+        apiEndpoints.project.creatorProjects(userData.user.username),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -77,7 +78,7 @@ function UserProfile() {
         setCreatedProjects(createdProjectsData.projects || []);
       }
       const editedProjectsResponse = await fetch(
-        `http://localhost:4000/projectApi/projects/editor/${userData.user.email}`,
+        apiEndpoints.project.editorProjectsByEmail(userData.user.email),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -180,7 +181,7 @@ function UserProfile() {
       const token = localStorage.getItem("token");
       const dataToSubmit = { ...editFormData };
       const response = await fetch(
-        `http://localhost:4000/userApi/user/${user.username}/update`,
+        apiEndpoints.user.update(user.username),
         {
           method: "PUT",
           headers: {

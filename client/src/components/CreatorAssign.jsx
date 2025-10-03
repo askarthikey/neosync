@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiEndpoints } from '../utils/api';
 
 function CreatorAssign() {
   const [accessRequests, setAccessRequests] = useState([]);
@@ -67,7 +68,7 @@ function CreatorAssign() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:4000/projectApi/access-requests/creator",
+        apiEndpoints.project.accessRequests.creator(),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -106,7 +107,7 @@ function CreatorAssign() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:4000/projectApi/access-requests/${requestId}/approve`,
+        apiEndpoints.project.accessRequests.approve(requestId),
         {
           method: "PUT",
           headers: {
@@ -162,7 +163,7 @@ function CreatorAssign() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:4000/projectApi/access-requests/${requestId}/reject`,
+        apiEndpoints.project.accessRequests.reject(requestId),
         {
           method: "PUT",
           headers: {
