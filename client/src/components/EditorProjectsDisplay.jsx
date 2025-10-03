@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import YouTubeUpload from './YouTubeUpload';
+import ProjectChat from './ProjectChat';
+import { useSocket } from '../context/SocketContext';
 
 function EditorProjectsDisplay() {
   const location = useLocation();
+  const { sendMessage } = useSocket();
   
   // State management
   const [, setUser] = useState(null);
@@ -545,6 +548,14 @@ function EditorProjectsDisplay() {
       
       // Show success message
       showStatusUpdateSuccess(newStatus);
+      
+      // Send chat message about status update
+      if (sendMessage && projectId) {
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const userName = currentUser?.name || currentUser?.email?.split('@')[0] || 'Editor';
+        const message = `Project status updated to: ${newStatus}`;
+        sendMessage(projectId, message, userName, 'status-update');
+      }
       
     } catch (error) {
       console.error('Error updating project status:', error);
@@ -1592,6 +1603,15 @@ function EditorProjectsDisplay() {
                         </div>
                       </div>
                     )}
+
+                    {/* Chat Section */}
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 mb-6">
+                      <ProjectChat 
+                        project={selectedProject}
+                        currentUser={JSON.parse(localStorage.getItem('user') || '{}')}
+                        isCreator={false}
+                      />
+                    </div>
                     
                     {/* Enhanced update status section */}
                     {selectedProject.status !== 'Closed' && selectedProject.status !== 'Completed' && (
@@ -1650,108 +1670,6 @@ function EditorProjectsDisplay() {
                         </div>
                       </div>
                     )}
-
-                    {/* Enhanced Project Conversation Section */}
-                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-                          <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                          </svg>
-                          Project Conversation
-                        </h3>
-                      </div>
-                      
-                      {loadingReviews || loadingResponses ? (
-                        <div className="flex items-center justify-center h-32 bg-white/5 rounded-xl border border-white/10">
-                          <div className="text-center">
-                            <div className="animate-spin h-8 w-8 border-2 border-white/20 border-t-white/80 rounded-full mx-auto mb-3"></div>
-                            <p className="text-gray-300">Loading conversation...</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {videoResponses.length === 0 && reviews.length === 0 ? (
-                            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-2xl text-center border border-white/20">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                              <p className="text-gray-300">No conversation yet.</p>
-                              <p className="text-gray-400 text-sm mt-1">Start the conversation by updating the project status or leaving feedback.</p>
-                            </div>
-                          ) : (
-                            [...videoResponses.map(response => ({
-                              ...response,
-                              type: 'editor-response',
-                              timestamp: new Date(response.createdAt || Date.now() - (videoResponses.length - response.index) * 86400000)
-                            })), 
-                            ...reviews.map(review => ({
-                              ...review,
-                              type: 'creator-review',
-                              timestamp: new Date(review.createdAt)
-                            }))]
-                            .sort((a, b) => a.timestamp - b.timestamp)
-                            .map((item, idx) => (
-                              <div 
-                                key={`${item.type}-${idx}`} 
-                                className={`p-5 rounded-xl backdrop-blur-sm border transition-all duration-200 hover:shadow-lg ${
-                                  item.type === 'editor-response' 
-                                    ? 'bg-blue-500/10 border-blue-400/30 hover:border-blue-400/50' 
-                                    : 'bg-purple-500/10 border-purple-400/30 hover:border-purple-400/50'
-                                }`}
-                              >
-                                <div className="flex items-start mb-3">
-                                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center backdrop-blur-sm border ${
-                                    item.type === 'editor-response' 
-                                      ? 'bg-blue-500/20 border-blue-400/30 text-blue-200' 
-                                      : 'bg-purple-500/20 border-purple-400/30 text-purple-200'
-                                  }`}>
-                                    <span className="text-sm font-bold">
-                                      {item.type === 'editor-response' ? 'E' : 'C'}
-                                    </span>
-                                  </div>
-                                  <div className="ml-4 flex-1">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-sm font-semibold text-white">
-                                        {item.type === 'editor-response' 
-                                          ? `Your Response #${item.index + 1}` 
-                                          : 'Creator Comment'}
-                                      </span>
-                                      <span className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded-lg">
-                                        {item.timestamp.toLocaleDateString(undefined, {
-                                          year: 'numeric',
-                                          month: 'short',
-                                          day: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit'
-                                        })}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                {item.type === 'editor-response' && item.videoUrl && (
-                                  <div className="relative aspect-video bg-black/50 rounded-xl overflow-hidden mb-4 border border-white/20">
-                                    <video 
-                                      src={`http://localhost:4000${item.videoUrl}`} 
-                                      controls
-                                      className="w-full h-full object-contain"
-                                    />
-                                  </div>
-                                )}
-                                
-                                <div className="prose max-w-none">
-                                  <p className="text-gray-200 leading-relaxed">{item.type === 'editor-response' ? 
-                                    (item.description || 'No description provided') : 
-                                    (item.comment || 'No comment provided')}
-                                  </p>
-                                </div>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      )}
-                    </div>
                   </div>
 
                   {/* Enhanced Project details sidebar */}

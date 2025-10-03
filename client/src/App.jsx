@@ -22,6 +22,7 @@ import YouTubeAuthSuccess from "./components/YouTubeAuthSuccess";
 import YouTubeAuthError from "./components/YouTubeAuthError";
 import RootLayout from "./components/RootLayout";
 import { NotificationProvider } from "./context/NotificationContext";
+import { SocketProvider } from "./context/SocketContext";
 const isAuthenticated = () => {
   return localStorage.getItem("token") !== null;
 };
@@ -106,91 +107,93 @@ const NotFound = () => (
 function App() {
   return (
     <NotificationProvider>
-      <Router>
-        <RootLayout>
-          <Header />
-          <Routes>
-            <Route
-              path="/"
-              element={
-                isAuthenticated() ? <Navigate to="/home" /> : <StartPage />
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                !isAuthenticated() ? <Signup /> : <Navigate to="/home" />
-              }
-            />
-            <Route
-              path="/signin"
-              element={
-                !isAuthenticated() ? <Signin /> : <Navigate to="/home" />
-              }
-            />
-            <Route
-              path="/home"
-              element={
-                <ProtectedRoute>
-                  <HomeRouter />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/profile" element={<UserProfile />} />
-            <Route path="/youtube-auth-success" element={<YouTubeAuthSuccess />} />
-            <Route path="/youtube-auth-error" element={<YouTubeAuthError />} />
-            <Route
-              path="/creator-projects"
-              element={
-                <ProtectedRoute>
-                  <CreatorProjects />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator-display"
-              element={
-                <ProtectedRoute>
-                  <CreatorProjectDisplay />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator-assign"
-              element={
-                <ProtectedRoute>
-                  <CreatorAssign />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/editor-projects"
-              element={
-                <ProtectedRoute>
-                  <EditorProjectsDisplay />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/editor-discover"
-              element={
-                <ProtectedRoute>
-                  <EditorDiscover />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </RootLayout>
-      </Router>
+      <SocketProvider>
+        <Router>
+          <RootLayout>
+            <Header />
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  isAuthenticated() ? <Navigate to="/home" /> : <StartPage />
+                }
+              />
+              <Route
+                path="/signup"
+                element={
+                  !isAuthenticated() ? <Signup /> : <Navigate to="/home" />
+                }
+              />
+              <Route
+                path="/signin"
+                element={
+                  !isAuthenticated() ? <Signin /> : <Navigate to="/home" />
+                }
+              />
+              <Route
+                path="/home"
+                element={
+                  <ProtectedRoute>
+                    <HomeRouter />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/profile" element={<UserProfile />} />
+              <Route path="/youtube-auth-success" element={<YouTubeAuthSuccess />} />
+              <Route path="/youtube-auth-error" element={<YouTubeAuthError />} />
+              <Route
+                path="/creator-projects"
+                element={
+                  <ProtectedRoute>
+                    <CreatorProjects />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/creator-display"
+                element={
+                  <ProtectedRoute>
+                    <CreatorProjectDisplay />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/creator-assign"
+                element={
+                  <ProtectedRoute>
+                    <CreatorAssign />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/editor-projects"
+                element={
+                  <ProtectedRoute>
+                    <EditorProjectsDisplay />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/editor-discover"
+                element={
+                  <ProtectedRoute>
+                    <EditorDiscover />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </RootLayout>
+        </Router>
+      </SocketProvider>
     </NotificationProvider>
   );
 }
