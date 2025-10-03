@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { apiEndpoints } from '../utils/api';
 
 function CreatorProjects() {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ function CreatorProjects() {
     // Fetch available editors
     const fetchEditors = async () => {
       try {
-        const response = await fetch('http://localhost:4000/userApi/editors', {
+        const response = await fetch(apiEndpoints.user.getEditors(), {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -95,7 +96,7 @@ function CreatorProjects() {
   const fetchProjectForEditing = async (projectId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/projectApi/project/${projectId}`, {
+      const response = await fetch(apiEndpoints.project.getProject(projectId), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -358,7 +359,7 @@ function CreatorProjects() {
       };
       
       // First, open the connection
-      xhr.open('POST', 'http://localhost:4000/projectApi/project');
+      xhr.open('POST', apiEndpoints.project.createProject());
       
       // Get the token - need to get a fresh copy in case it was updated
       const token = localStorage.getItem('token');

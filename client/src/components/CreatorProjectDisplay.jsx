@@ -155,7 +155,7 @@ function CreatorProjectDisplay() {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:4000/projectApi/update-review/${editCommentData.reviewId}`, {
+      const response = await fetch(apiEndpoints.project.updateReview(editCommentData.reviewId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -205,7 +205,7 @@ function CreatorProjectDisplay() {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:4000/projectApi/delete-review/${commentToDelete}`, {
+      const response = await fetch(apiEndpoints.project.deleteReview(commentToDelete), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -268,7 +268,7 @@ function CreatorProjectDisplay() {
         throw new Error("Could not determine project ID");
       }
       
-      const response = await fetch(`http://localhost:4000/projectApi/project/${projectId}`, {
+      const response = await fetch(apiEndpoints.project.getProject(projectId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -321,7 +321,7 @@ function CreatorProjectDisplay() {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:4000/reviewApi/submit-review`, {
+      const response = await fetch(apiEndpoints.review.submit(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -378,7 +378,7 @@ function CreatorProjectDisplay() {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:4000/projectApi/add-review`, {
+      const response = await fetch(apiEndpoints.project.addReview(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -435,7 +435,7 @@ function CreatorProjectDisplay() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`http://localhost:4000/projectApi/close-project/${projectId}`, {
+      const response = await fetch(apiEndpoints.project.closeProject(projectId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -476,7 +476,7 @@ function CreatorProjectDisplay() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`http://localhost:4000/projectApi/reopen-project/${projectId}`, {
+      const response = await fetch(apiEndpoints.project.reopenProject(projectId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -524,7 +524,7 @@ function CreatorProjectDisplay() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`http://localhost:4000/projectApi/grant-youtube-access/${projectId}`, {
+      const response = await fetch(apiEndpoints.project.grantYouTubeAccess(projectId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -583,7 +583,7 @@ function CreatorProjectDisplay() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`http://localhost:4000/projectApi/revoke-youtube-access/${projectId}`, {
+      const response = await fetch(apiEndpoints.project.revokeYouTubeAccess(projectId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -738,7 +738,7 @@ function CreatorProjectDisplay() {
         // Get editor rating if available
         if (project.editorEmail) {
           try {
-            const editorDataResponse = await fetch(`http://localhost:4000/userApi/user-by-email?email=${encodeURIComponent(project.editorEmail)}`, {
+            const editorDataResponse = await fetch(apiEndpoints.user.getByEmail(project.editorEmail), {
               headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -757,7 +757,7 @@ function CreatorProjectDisplay() {
         // Check if the project has been rated
         try {
           if ((project.status === 'Completed' || project.status === 'Closed') && username) {
-            const reviewResponse = await fetch(`http://localhost:4000/reviewApi/check-review?projectId=${project._id}&creatorUsername=${username}`, {
+            const reviewResponse = await fetch(apiEndpoints.review.check(project._id, username), {
               headers: { 'Authorization': `Bearer ${token}` }
             });
             

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { apiEndpoints } from '../utils/api';
 
 function CreatorHome() {
   const navigate = useNavigate();
@@ -117,7 +118,7 @@ function CreatorHome() {
       }
       
       // Use username from local storage, not from state
-      const projectsResponse = await fetch(`http://localhost:4000/projectApi/projects/creator/${username}`, {
+      const projectsResponse = await fetch(apiEndpoints.project.creatorProjects(username), {
         headers: {
           'Authorization': `Bearer ${token}`
         }

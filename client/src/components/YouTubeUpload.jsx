@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNotifications } from '../context/NotificationContext';
+import { apiEndpoints } from '../utils/api';
 
 const YouTubeUpload = ({ project, onUploadSuccess }) => {
   const { showToast } = useNotifications();
@@ -24,7 +25,7 @@ const YouTubeUpload = ({ project, onUploadSuccess }) => {
     const checkYouTubeAccess = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:4000/projectApi/check-youtube-access/${project._id}`, {
+        const response = await fetch(apiEndpoints.project.checkYouTubeAccess(project._id), {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -121,14 +122,14 @@ const YouTubeUpload = ({ project, onUploadSuccess }) => {
         throw new Error('Authentication token not found. Please log in again.');
       }
 
-      console.log('Uploading to:', `http://localhost:4000/youtubeApi/youtube/upload/${project._id}`);
+      console.log('Uploading to:', apiEndpoints.youtube.upload(project._id));
       console.log('Project data:', { 
         id: project._id, 
         userCreated: project.userCreated,
         title: uploadData.title 
       });
 
-      const response = await fetch(`http://localhost:4000/youtubeApi/youtube/upload/${project._id}`, {
+      const response = await fetch(apiEndpoints.youtube.upload(project._id), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

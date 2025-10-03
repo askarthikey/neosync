@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { apiEndpoints } from '../utils/api';
 
 function EditorHome() {
   const navigate = useNavigate();
@@ -113,7 +114,7 @@ function EditorHome() {
       }
 
       // Fetch assigned projects
-      const projectsResponse = await fetch(`http://localhost:4000/projectApi/editor-projects?email=${encodeURIComponent(editorEmail)}`, {
+      const projectsResponse = await fetch(apiEndpoints.project.editorProjects(editorEmail), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -126,7 +127,7 @@ function EditorHome() {
       const projectsData = await projectsResponse.json();
       const projects = projectsData.projects || [];
       // Fetch creator feedback from the reviewCollection
-      const feedbackResponse = await fetch(`http://localhost:4000/projectApi/creator-feedback-for-editor?email=${encodeURIComponent(editorEmail)}`, {
+      const feedbackResponse = await fetch(apiEndpoints.project.getCreatorFeedback(editorEmail), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -229,7 +230,7 @@ function EditorHome() {
       })));
 
       // Fetch editor ratings from usersCollection
-      const userRatingsResponse = await fetch(`http://localhost:4000/userApi/editor-ratings?email=${encodeURIComponent(editorEmail)}`, {
+      const userRatingsResponse = await fetch(apiEndpoints.user.getEditorRatings(editorEmail), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
